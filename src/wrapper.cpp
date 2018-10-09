@@ -1,31 +1,7 @@
 #include "wrapper.hpp"
 
 extern "C" {
-void token_preimage_destroy(void *);
-
-void *token_generate();
-void token_destroy(void *);
-void *token_blind(void *);
-void *token_unblind(void *, void *);
-
-void blinded_token_destroy(void *);
-
-void signed_token_destroy(void *);
-
-void verification_signature_destroy(void *);
-bool verification_signature_equals(void *, void *);
-
-void unblinded_token_destroy(void *);
-void *unblinded_token_derive_verification_key_sha512(void *);
-void *unblinded_token_preimage(void *);
-
-void verification_key_destroy(void *);
-void *verification_key_sign_sha512(void *, const char *);
-
-void *signing_key_generate();
-void signing_key_destroy(void *);
-void *signing_key_sign(void *, void *);
-void *signing_key_rederive_unblinded_token(void *, void *);
+#include "lib.h"
 }
 
 TokenPreimage::~TokenPreimage() { token_preimage_destroy(raw); }
@@ -61,6 +37,21 @@ UnblindedToken Token::unblind(SignedToken tok) {
 
 
 BlindedToken::~BlindedToken() { blinded_token_destroy(raw); }
+
+BlindedToken decode_blinded_token(const std::string encoded) { 
+  void* raw_blinded = blinded_token_decode(encoded.c_str());
+  if (raw_blinded == nullptr) {
+    throw "Failed to decode";
+  }
+  return BlindedToken(raw_blinded);
+}
+
+std::string BlindedToken::encode() { 
+  char* tmp = blinded_token_encode(raw);
+  std::string result = std::string(tmp);
+  c_char_destroy(tmp);
+  return result;
+}
 
 
 SignedToken::~SignedToken() { signed_token_destroy(raw); }

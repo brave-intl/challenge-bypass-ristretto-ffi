@@ -11,10 +11,12 @@ class TokenPreimage {
 class BlindedToken {
   public:
     BlindedToken(void *raw) : raw(raw){}
+    std::string encode();
     ~BlindedToken();
 
     void *raw;
 };
+BlindedToken decode_blinded_token(const std::string);
 
 class SignedToken {
   public:

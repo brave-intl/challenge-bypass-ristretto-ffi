@@ -15,8 +15,15 @@ int main() {
   // client blinds the token and sends it to the server
   BlindedToken blinded_tok = tok.blind();
 
+  std::string base64_blinded_tok = blinded_tok.encode();
+  cout<<"base64_blinded_tok: "<<base64_blinded_tok<<"\n";
+
+  BlindedToken server_blinded_tok = decode_blinded_token(base64_blinded_tok);
+  base64_blinded_tok = server_blinded_tok.encode();
+  cout<<"base64_blinded_tok: "<<base64_blinded_tok<<"\n";
+
   // server signs the blinded token and returns it to the client
-  SignedToken signed_tok = sKey.sign(blinded_tok);
+  SignedToken signed_tok = sKey.sign(server_blinded_tok);
 
   // client uses the blinding scalar to unblind the returned signed token
   UnblindedToken client_unblinded_tok = tok.unblind(signed_tok);

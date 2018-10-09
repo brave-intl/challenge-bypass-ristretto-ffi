@@ -1,9 +1,10 @@
+extern crate base64;
 extern crate challenge_bypass_ristretto;
 extern crate rand;
 extern crate sha2;
 
 use core::ptr;
-use std::ffi::CStr;
+use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 
 use challenge_bypass_ristretto::{
@@ -81,6 +82,54 @@ pub unsafe extern "C" fn token_unblind(
 pub unsafe extern "C" fn blinded_token_destroy(token: *mut BlindedToken) {
     if !token.is_null() {
         drop(Box::from_raw(token));
+    }
+}
+
+/// Return base64 encoding of a `BlindedToken`.
+#[no_mangle]
+pub unsafe extern "C" fn blinded_token_encode(token: *const BlindedToken) -> *mut c_char {
+    if token.is_null() {
+        return ptr::null_mut();
+    } else {
+        let b64 = base64::encode(&(&*token).to_bytes());
+        return match CString::new(b64) {
+            Ok(s) => s.into_raw(),
+            Err(_) => ptr::null_mut(),
+        };
+    }
+}
+
+/// Decode base64 string, returning a `BlindedToken`.
+///
+/// If something goes wrong, this will return a null pointer. Don't forget to
+/// destroy the `BlindedToken` once you are done with it!
+#[no_mangle]
+pub unsafe extern "C" fn blinded_token_decode(s: *const c_char) -> *mut BlindedToken {
+    if s.is_null() {
+        return ptr::null_mut();
+    } else {
+        let raw = CStr::from_ptr(s);
+        let s_as_str = match raw.to_str() {
+            Ok(s) => s,
+            Err(_) => return ptr::null_mut(),
+        };
+
+        let decoded = match base64::decode(s_as_str) {
+            Ok(b) => b,
+            Err(_) => return ptr::null_mut(),
+        };
+        return match BlindedToken::from_bytes(&decoded) {
+            Ok(token) => Box::into_raw(Box::new(token)),
+            Err(_) => ptr::null_mut(),
+        };
+    }
+}
+
+/// Destroy a `*c_char` once you are done with it.
+#[no_mangle]
+pub unsafe extern "C" fn c_char_destroy(s: *mut c_char) {
+    if !s.is_null() {
+        drop(CString::from_raw(s));
     }
 }
 
