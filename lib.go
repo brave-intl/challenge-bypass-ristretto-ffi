@@ -8,20 +8,39 @@ import "C"
 import (
 	"errors"
 	"runtime"
-	"unsafe"
 )
 
 type TokenPreimage struct {
-	raw unsafe.Pointer
+	raw *C.C_TokenPreimage
 }
 
 func token_preimage_finalizer(t *TokenPreimage) {
 	C.token_preimage_destroy(t.raw)
-	t.raw = nil
+}
+
+// MarshalText marshalls the token preimage into text.
+func (t *TokenPreimage) MarshalText() ([]byte, error) {
+	encoded := C.token_preimage_encode_base64(t.raw)
+	if encoded == nil {
+		return nil, errors.New("Failed to encode token preimage")
+	}
+	defer C.c_char_destroy(encoded)
+	return []byte(C.GoString(encoded)), nil
+}
+
+// UnmarshalText unmarshalls the token preimage from text.
+func (t *TokenPreimage) UnmarshalText(text []byte) error {
+	raw := C.token_preimage_decode_base64(C.CString(string(text)))
+	if raw == nil {
+		return errors.New("Failed to decode token preimage")
+	}
+	*t = TokenPreimage{raw: raw}
+	runtime.SetFinalizer(t, token_preimage_finalizer)
+	return nil
 }
 
 type Token struct {
-	raw unsafe.Pointer
+	raw *C.C_Token
 }
 
 func token_finalizer(t *Token) {
@@ -29,8 +48,8 @@ func token_finalizer(t *Token) {
 	t.raw = nil
 }
 
-func GenerateToken() (*Token, error) {
-	raw := C.token_generate()
+func RandomToken() (*Token, error) {
+	raw := C.token_random()
 	if raw == nil {
 		return nil, errors.New("Failed to generate token")
 	}
@@ -59,8 +78,29 @@ func (t *Token) Unblind(st *SignedToken) (*UnblindedToken, error) {
 	return tok, nil
 }
 
+// MarshalText marshalls the token into text.
+func (t *Token) MarshalText() ([]byte, error) {
+	encoded := C.token_encode_base64(t.raw)
+	if encoded == nil {
+		return nil, errors.New("Failed to encode token")
+	}
+	defer C.c_char_destroy(encoded)
+	return []byte(C.GoString(encoded)), nil
+}
+
+// UnmarshalText unmarshalls the token from text.
+func (t *Token) UnmarshalText(text []byte) error {
+	raw := C.token_decode_base64(C.CString(string(text)))
+	if raw == nil {
+		return errors.New("Failed to decode token")
+	}
+	*t = Token{raw: raw}
+	runtime.SetFinalizer(t, token_finalizer)
+	return nil
+}
+
 type BlindedToken struct {
-	raw unsafe.Pointer
+	raw *C.C_BlindedToken
 }
 
 func blinded_token_finalizer(t *BlindedToken) {
@@ -70,7 +110,7 @@ func blinded_token_finalizer(t *BlindedToken) {
 
 // MarshalText marshalls the blinded token into text.
 func (t *BlindedToken) MarshalText() ([]byte, error) {
-	encoded := C.blinded_token_encode(t.raw)
+	encoded := C.blinded_token_encode_base64(t.raw)
 	if encoded == nil {
 		return nil, errors.New("Failed to encode blinded token")
 	}
@@ -80,7 +120,7 @@ func (t *BlindedToken) MarshalText() ([]byte, error) {
 
 // UnmarshalText unmarshalls the blinded token from text.
 func (t *BlindedToken) UnmarshalText(text []byte) error {
-	raw := C.blinded_token_decode(C.CString(string(text)))
+	raw := C.blinded_token_decode_base64(C.CString(string(text)))
 	if raw == nil {
 		return errors.New("Failed to decoded blinded token")
 	}
@@ -90,7 +130,7 @@ func (t *BlindedToken) UnmarshalText(text []byte) error {
 }
 
 type SignedToken struct {
-	raw unsafe.Pointer
+	raw *C.C_SignedToken
 }
 
 func signed_token_finalizer(t *SignedToken) {
@@ -98,8 +138,29 @@ func signed_token_finalizer(t *SignedToken) {
 	t.raw = nil
 }
 
+// MarshalText marshalls the signed token into text.
+func (t *SignedToken) MarshalText() ([]byte, error) {
+	encoded := C.signed_token_encode_base64(t.raw)
+	if encoded == nil {
+		return nil, errors.New("Failed to encode signed token")
+	}
+	defer C.c_char_destroy(encoded)
+	return []byte(C.GoString(encoded)), nil
+}
+
+// UnmarshalText unmarshalls the signed token from text.
+func (t *SignedToken) UnmarshalText(text []byte) error {
+	raw := C.signed_token_decode_base64(C.CString(string(text)))
+	if raw == nil {
+		return errors.New("Failed to decode signed token")
+	}
+	*t = SignedToken{raw: raw}
+	runtime.SetFinalizer(t, signed_token_finalizer)
+	return nil
+}
+
 type SigningKey struct {
-	raw unsafe.Pointer
+	raw *C.C_SigningKey
 }
 
 func signing_key_finalizer(k *SigningKey) {
@@ -127,8 +188,8 @@ func (k *SigningKey) RederiveUnblindedToken(t *TokenPreimage) (*UnblindedToken, 
 	return tok, nil
 }
 
-func GenerateSigningKey() (*SigningKey, error) {
-	raw := C.signing_key_generate()
+func RandomSigningKey() (*SigningKey, error) {
+	raw := C.signing_key_random()
 	if raw == nil {
 		return nil, errors.New("Failed to generate signing key")
 	}
@@ -137,8 +198,29 @@ func GenerateSigningKey() (*SigningKey, error) {
 	return key, nil
 }
 
+// MarshalText marshalls the signing key into text.
+func (t *SigningKey) MarshalText() ([]byte, error) {
+	encoded := C.signing_key_encode_base64(t.raw)
+	if encoded == nil {
+		return nil, errors.New("Failed to encode signing key")
+	}
+	defer C.c_char_destroy(encoded)
+	return []byte(C.GoString(encoded)), nil
+}
+
+// UnmarshalText unmarshalls the signing key from text.
+func (t *SigningKey) UnmarshalText(text []byte) error {
+	raw := C.signing_key_decode_base64(C.CString(string(text)))
+	if raw == nil {
+		return errors.New("Failed to decode signing key")
+	}
+	*t = SigningKey{raw: raw}
+	runtime.SetFinalizer(t, signing_key_finalizer)
+	return nil
+}
+
 type UnblindedToken struct {
-	raw unsafe.Pointer
+	raw *C.C_UnblindedToken
 }
 
 func unblinded_token_finalizer(t *UnblindedToken) {
@@ -166,8 +248,29 @@ func (t *UnblindedToken) Preimage() (*TokenPreimage, error) {
 	return tok, nil
 }
 
+// MarshalText marshalls the unblinded token into text.
+func (t *UnblindedToken) MarshalText() ([]byte, error) {
+	encoded := C.unblinded_token_encode_base64(t.raw)
+	if encoded == nil {
+		return nil, errors.New("Failed to encode unblinded token")
+	}
+	defer C.c_char_destroy(encoded)
+	return []byte(C.GoString(encoded)), nil
+}
+
+// UnmarshalText unmarshalls the unblinded token from text.
+func (t *UnblindedToken) UnmarshalText(text []byte) error {
+	raw := C.unblinded_token_decode_base64(C.CString(string(text)))
+	if raw == nil {
+		return errors.New("Failed to decode unblinded token")
+	}
+	*t = UnblindedToken{raw: raw}
+	runtime.SetFinalizer(t, unblinded_token_finalizer)
+	return nil
+}
+
 type VerificationKey struct {
-	raw unsafe.Pointer
+	raw *C.C_VerificationKey
 }
 
 func verification_key_finalizer(k *VerificationKey) {
@@ -185,8 +288,12 @@ func (k *VerificationKey) Sign(message string) (*VerificationSignature, error) {
 	return sig, nil
 }
 
+func (k *VerificationKey) Verify(sig *VerificationSignature, message string) bool {
+	return bool(C.verification_key_verify_sha512(k.raw, sig.raw, C.CString(message)))
+}
+
 type VerificationSignature struct {
-	raw unsafe.Pointer
+	raw *C.C_VerificationSignature
 }
 
 func verification_signature_finalizer(s *VerificationSignature) {
@@ -194,6 +301,23 @@ func verification_signature_finalizer(s *VerificationSignature) {
 	s.raw = nil
 }
 
-func (s1 *VerificationSignature) Equals(s2 *VerificationSignature) bool {
-	return bool(C.verification_signature_equals(s1.raw, s2.raw))
+// MarshalText marshalls the verification signature into text.
+func (t *VerificationSignature) MarshalText() ([]byte, error) {
+	encoded := C.verification_signature_encode_base64(t.raw)
+	if encoded == nil {
+		return nil, errors.New("Failed to encode verification signature")
+	}
+	defer C.c_char_destroy(encoded)
+	return []byte(C.GoString(encoded)), nil
+}
+
+// UnmarshalText unmarshalls the unblinded token from text.
+func (t *VerificationSignature) UnmarshalText(text []byte) error {
+	raw := C.verification_signature_decode_base64(C.CString(string(text)))
+	if raw == nil {
+		return errors.New("Failed to decode verification signature")
+	}
+	*t = VerificationSignature{raw: raw}
+	runtime.SetFinalizer(t, verification_signature_finalizer)
+	return nil
 }

@@ -1,0 +1,27 @@
+language: rust
+
+matrix:
+  include:
+    - os: linux
+      services: docker
+      script:
+        - make go-docker-test 
+    - os: linux
+      rust: nightly
+      before_script:
+        - rustup component add rustfmt-preview
+        - rustup component add clippy-preview
+      script:
+        - cargo fmt -- --check
+        - cargo clippy
+        - cargo build
+    - os: osx
+      rust: nightly
+      script:
+        - cargo clippy
+        - cargo build
+    - os: windows
+      rust: nightly
+      script:
+        - cargo clippy
+        - cargo build
