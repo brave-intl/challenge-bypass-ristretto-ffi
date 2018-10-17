@@ -2,13 +2,13 @@ language: rust
 
 matrix:
   include:
-    - name: "Golang example"
+    - name: "Golang Example"
       language: generic
       os: linux
       services: docker
       script:
         - make go-docker-test 
-    - name: "Linux Build"
+    - name: "Linux Build and C++ Example"
       os: linux
       rust: nightly
       before_script:
@@ -18,6 +18,7 @@ matrix:
         - cargo fmt -- --check
         - cargo clippy
         - cargo build
+        - make examples/cpp.out
     - name: "OSX Build"
       os: osx
       rust: nightly
@@ -38,6 +39,9 @@ matrix:
         - unzip ndk.zip > /dev/null
         - export NDK_HOME=`pwd`/android-ndk-r18b
         - ${NDK_HOME}/build/tools/make_standalone_toolchain.py --arch arm --api 18 --install-dir android-18-armv7-toolchain
+        - export PATH="$PATH:/android-18-armv7-toolchain/bin/"
+        - ls /android-18-armv7-toolchain/bin/
+        - ls android-18-armv7-toolchain/bin/
         - mkdir .cargo
         - echo "[target.arm-linux-androideabi]" >> .cargo/config
         - echo "linker = \"`pwd`/android-18-armv7-toolchain/bin/arm-linux-androideabi-gcc\"" >> .cargo/config
