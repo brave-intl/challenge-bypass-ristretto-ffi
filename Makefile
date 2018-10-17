@@ -5,7 +5,7 @@ examples/cpp.out: target/debug/libchallenge_bypass_ristretto.a examples/wrapper.
 	./examples/cpp.out
 
 examples/wrapper.o: src/lib.h src/wrapper.cpp src/wrapper.hpp
-	g++ src/wrapper.cpp -I src/ -c  -o examples/wrapper.o
+	g++ -std=gnu++0x src/wrapper.cpp -I src/ -c  -o examples/wrapper.o
 
 target/debug/libchallenge_bypass_ristretto.a: src/lib.rs Cargo.toml
 	cargo build
