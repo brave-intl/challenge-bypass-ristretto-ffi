@@ -14,12 +14,14 @@ matrix:
       before_script:
         - rustup component add rustfmt-preview
         - rustup component add clippy-preview
+        - sudo apt-get update
+        - DEBIAN_FRONTEND=noninteractive sudo apt-get install -y valgrind
       script:
         - cargo fmt -- --check
         - cargo clippy
         - cargo build
         - make examples/cpp.out
-        - valgrind --leak-check=yes ./examples/cpp.out
+        - valgrind --leak-check=yes --error-exitcode=1 ./examples/cpp.out
     - name: "OSX Build"
       os: osx
       rust: nightly
