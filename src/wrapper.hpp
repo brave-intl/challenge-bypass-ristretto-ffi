@@ -62,7 +62,7 @@ namespace challenge_bypass_ristretto {
       VerificationKey(C_VerificationKey *raw) : raw(raw){}
       ~VerificationKey();
       VerificationSignature sign(const std::string);
-      bool verify(VerificationSignature, const std::string);
+      bool verify(VerificationSignature*, const std::string);
 
     private:
       C_VerificationKey *raw;
@@ -87,7 +87,7 @@ namespace challenge_bypass_ristretto {
       static Token random();
       ~Token();
       BlindedToken blind();
-      UnblindedToken unblind(SignedToken);
+      UnblindedToken unblind(SignedToken*);
       static Token decode_base64(const std::string);
       std::string encode_base64();
 
@@ -100,8 +100,8 @@ namespace challenge_bypass_ristretto {
       SigningKey(C_SigningKey *raw) : raw(raw){}
       ~SigningKey();
       static SigningKey random();
-      SignedToken sign(BlindedToken);
-      UnblindedToken rederive_unblinded_token(TokenPreimage);
+      SignedToken sign(BlindedToken*);
+      UnblindedToken rederive_unblinded_token(TokenPreimage*);
       static SigningKey decode_base64(const std::string);
       std::string encode_base64();
 

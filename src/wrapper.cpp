@@ -45,8 +45,8 @@ namespace challenge_bypass_ristretto {
     return BlindedToken(raw_blinded);
   }
 
-  UnblindedToken Token::unblind(SignedToken tok) {
-    C_UnblindedToken *raw_unblinded = token_unblind(raw, tok.raw);
+  UnblindedToken Token::unblind(SignedToken *tok) {
+    C_UnblindedToken *raw_unblinded = token_unblind(raw, tok->raw);
     if (raw_unblinded == nullptr) {
       throw "Failed to unblind, are inputs valid?";
     }
@@ -180,8 +180,8 @@ namespace challenge_bypass_ristretto {
     return VerificationSignature(raw_verification_signature);
   }
 
-  bool VerificationKey::verify(VerificationSignature sig, const std::string message) {
-    return verification_key_verify_sha512(raw, sig.raw, message.c_str());
+  bool VerificationKey::verify(VerificationSignature *sig, const std::string message) {
+    return verification_key_verify_sha512(raw, sig->raw, message.c_str());
   }
 }
 
@@ -197,8 +197,8 @@ namespace challenge_bypass_ristretto {
 
   SigningKey::~SigningKey() { signing_key_destroy(raw); }
 
-  SignedToken SigningKey::sign(BlindedToken tok) {
-    C_SignedToken *raw_signed = signing_key_sign(raw, tok.raw);
+  SignedToken SigningKey::sign(BlindedToken *tok) {
+    C_SignedToken *raw_signed = signing_key_sign(raw, tok->raw);
     if (raw_signed == nullptr) {
       throw "Failed to sign, are inputs valid?";
     }
@@ -206,8 +206,8 @@ namespace challenge_bypass_ristretto {
     return SignedToken(raw_signed);
   }
 
-  UnblindedToken SigningKey::rederive_unblinded_token(TokenPreimage t) {
-    C_UnblindedToken *raw_unblinded = signing_key_rederive_unblinded_token(raw, t.raw);
+  UnblindedToken SigningKey::rederive_unblinded_token(TokenPreimage *t) {
+    C_UnblindedToken *raw_unblinded = signing_key_rederive_unblinded_token(raw, t->raw);
     if (raw_unblinded == nullptr) {
       throw "Failed to rederive, are inputs valid?";
     }
