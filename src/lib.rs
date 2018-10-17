@@ -119,10 +119,10 @@ pub unsafe extern "C" fn token_unblind(
     if signed_token.is_null() {
         return ptr::null_mut();
     }
-    return match (*token).unblind(&*signed_token) {
+    match (*token).unblind(&*signed_token) {
         Ok(unblinded_token) => Box::into_raw(Box::new(unblinded_token)),
         Err(_) => ptr::null_mut(),
-    };
+    }
 }
 
 impl_base64!(Token, token_encode_base64, token_decode_base64);
@@ -305,10 +305,10 @@ pub unsafe extern "C" fn signing_key_sign(
         return ptr::null_mut();
     }
 
-    return match (*key).sign(&*token) {
+    match (*key).sign(&*token) {
         Ok(signed_token) => Box::into_raw(Box::new(signed_token)),
         Err(_) => ptr::null_mut(),
-    };
+    }
 }
 
 /// Take a reference to a `SigningKey` and use it to rederive an `UnblindedToken`
