@@ -2,12 +2,14 @@ language: rust
 
 matrix:
   include:
-    - language: generic
+    - name: "Golang example"
+      language: generic
       os: linux
       services: docker
       script:
         - make go-docker-test 
-    - os: linux
+    - name: "Linux Build"
+      os: linux
       rust: nightly
       before_script:
         - rustup component add rustfmt-preview
@@ -16,11 +18,30 @@ matrix:
         - cargo fmt -- --check
         - cargo clippy
         - cargo build
-    - os: osx
+    - name: "OSX Build"
+      os: osx
       rust: nightly
       script:
         - cargo build
-    - os: windows
+    - name: "Windows Build"
+      os: windows
       rust: nightly
       script:
         - cargo build
+    - name: "Android Build"
+      os: linux
+      rust: nightly
+      before_script:
+        - rustup target add arm-linux-androideabi
+        - wget https://dl.google.com/android/repository/android-ndk-r18b-linux-x86_64.zip -O ndk.zip
+        - echo "500679655da3a86aecf67007e8ab230ea9b4dd7b  ndk.zip" | sha1sum --check
+        - unzip ndk.zip > /dev/null
+        - export NDK_HOME=`pwd`/android-ndk-r18b
+        - ${NDK_HOME}/build/tools/make_standalone_toolchain.py --arch arm --api 18 --install-dir android-18-armv7-toolchain
+        - mkdir .cargo
+        - echo "[target.arm-linux-androideabi]" >> .cargo/config
+        - echo "linker = \"`pwd`/android-18-armv7-toolchain/bin/arm-linux-androideabi-gcc\"" >> .cargo/config
+        - echo "ar = \"`pwd`/android-18-armv7-toolchain/bin/arm-linux-androideabi-ar\"" >> .cargo/config
+        - cat .cargo/config
+      script:
+        - cargo build --target arm-linux-androideabi
