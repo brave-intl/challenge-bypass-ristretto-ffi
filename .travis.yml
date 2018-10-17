@@ -39,8 +39,7 @@ matrix:
         - unzip ndk.zip > /dev/null
         - export NDK_HOME=`pwd`/android-ndk-r18b
         - ${NDK_HOME}/build/tools/make_standalone_toolchain.py --arch arm --api 18 --install-dir android-18-armv7-toolchain
-        - export PATH="$PATH:/android-18-armv7-toolchain/bin/"
-        - ls /android-18-armv7-toolchain/bin/
+        - export PATH="$PATH:$(pwd)/android-18-armv7-toolchain/bin/"
         - ls android-18-armv7-toolchain/bin/
         - mkdir .cargo
         - echo "[target.arm-linux-androideabi]" >> .cargo/config

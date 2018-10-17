@@ -1,7 +1,7 @@
 all: examples/cpp.out
 
 examples/cpp.out: target/debug/libchallenge_bypass_ristretto.a examples/wrapper.o examples/cpp/main.cpp 
-	g++ examples/cpp/main.cpp examples/wrapper.o ./target/debug/libchallenge_bypass_ristretto.a -I ./src -lpthread -ldl -o examples/cpp.out
+	g++ -std=gnu++0x examples/cpp/main.cpp examples/wrapper.o ./target/debug/libchallenge_bypass_ristretto.a -I ./src -lpthread -ldl -o examples/cpp.out
 	./examples/cpp.out
 
 examples/wrapper.o: src/lib.h src/wrapper.cpp src/wrapper.hpp
