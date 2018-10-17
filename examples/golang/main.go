@@ -12,7 +12,7 @@ import (
 
 func main() {
 	// Server setup
-	sKey, err := crypto.GenerateSigningKey()
+	sKey, err := crypto.RandomSigningKey()
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -20,7 +20,7 @@ func main() {
 	// Signing
 
 	// client prepares a random token and blinding scalar
-	token, err := crypto.GenerateToken()
+	token, err := crypto.RandomToken()
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -29,12 +29,6 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	encoded, err := blinded_token.MarshalText()
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	fmt.Println(string(encoded))
 
 	type Request struct {
 		BlindedToken *crypto.BlindedToken `json:"blinded_token"`
@@ -44,14 +38,18 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-
 	fmt.Println(string(json_encoded))
 
+	encoded, err := blinded_token.MarshalText()
+	if err != nil {
+		log.Fatalln(err)
+	}
 	var server_blinded_token crypto.BlindedToken
 	err = server_blinded_token.UnmarshalText(encoded)
 	if err != nil {
 		log.Fatalln(err)
 	}
+
 	// server signs the blinded token and returns it to the client
 	signed_token, err := sKey.Sign(&server_blinded_token)
 	if err != nil {
@@ -94,19 +92,15 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	// server signs the same message using the shared key
-	server_sig, err := server_vKey.Sign("test message")
 
-	// The server compares the client signature to it's own
-	if client_sig.Equals(server_sig) {
+	// server signs the same message using the shared key and compares the client signature to it's own
+	if server_vKey.Verify(client_sig, "test message") {
 		fmt.Println("sigs equal")
 	}
 
-	// server signs the wrong message using the shared key
-	server_sig, err = server_vKey.Sign("message")
-
-	if client_sig.Equals(server_sig) {
-		fmt.Println("ERROR: sigs equal")
+	// server signs the wrong message using the shared key and compares the client signature to it's own
+	if server_vKey.Verify(client_sig, "message") {
+		log.Fatalln("ERROR: sigs equal")
 	}
 
 	// force finalizers to run

@@ -1,0 +1,18 @@
+# The language to output bindings in
+language = "C"
+
+[parse]
+# Whether to parse dependent crates and include their types in the generated
+# bindings
+parse_deps = true
+# A black list of crate names that are not allowed to be parsed
+exclude = ["generic_array", "rand", "curve25519_dalek", "sha2"]
+
+[parse.expand]
+# A list of crate names that should be run through `cargo expand` before
+# parsing to expand any macros
+crates = ["challenge-bypass-ristretto-ffi"]
+
+[export]
+# A prefix to add before the name of every item
+prefix = "C_"

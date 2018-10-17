@@ -1,79 +1,111 @@
 #include<string>
 
-class TokenPreimage {
-  public:
-    TokenPreimage(void *raw) : raw(raw){}
-    ~TokenPreimage();
+extern "C" {
+#include "lib.h"
+}
 
-    void *raw;
-};
+namespace challenge_bypass_ristretto {
+  class TokenPreimage {
+    friend class SigningKey;
 
-class BlindedToken {
-  public:
-    BlindedToken(void *raw) : raw(raw){}
-    std::string encode();
-    ~BlindedToken();
+    public:
+      TokenPreimage(C_TokenPreimage *raw) : raw(raw){}
+      ~TokenPreimage();
+      static TokenPreimage decode_base64(const std::string);
+      std::string encode_base64();
 
-    void *raw;
-};
-BlindedToken decode_blinded_token(const std::string);
+    private:
+      C_TokenPreimage *raw;
+  };
 
-class SignedToken {
-  public:
-    SignedToken(void *raw) : raw(raw){}
-    ~SignedToken();
+  class BlindedToken {
+    friend class SigningKey;
 
-    void *raw;
-};
+    public:
+      BlindedToken(C_BlindedToken *raw) : raw(raw){}
+      ~BlindedToken();
+      static BlindedToken decode_base64(const std::string);
+      std::string encode_base64();
 
-class VerificationSignature {
-  public:
-    VerificationSignature(void *raw) : raw(raw){}
-    ~VerificationSignature();
-    bool equals(VerificationSignature);
+    private:
+      C_BlindedToken *raw;
+  };
 
-  private:
-    void *raw;
-};
+  class SignedToken {
+    friend class Token;
 
-class VerificationKey {
-  public:
-    VerificationKey(void *raw) : raw(raw){}
-    ~VerificationKey();
-    VerificationSignature sign(const std::string);
+    public:
+      SignedToken(C_SignedToken *raw) : raw(raw){}
+      ~SignedToken();
+      static SignedToken decode_base64(const std::string);
+      std::string encode_base64();
 
-  private:
-    void *raw;
-};
+    private:
+      C_SignedToken *raw;
+  };
 
-class UnblindedToken {
-  public:
-    UnblindedToken(void *raw) : raw(raw){}
-    ~UnblindedToken();
-    VerificationKey derive_verification_key();
-    TokenPreimage preimage();
+  class VerificationSignature {
+    friend class VerificationKey;
 
-    void *raw;
-};
+    public:
+      VerificationSignature(C_VerificationSignature *raw) : raw(raw){}
+      ~VerificationSignature();
+      static VerificationSignature decode_base64(const std::string);
+      std::string encode_base64();
 
-class Token {
-  public:
-    Token();
-    ~Token();
-    BlindedToken blind();
-    UnblindedToken unblind(SignedToken);
+    private:
+      C_VerificationSignature *raw;
+  };
 
-  private:
-    void *raw;
-};
+  class VerificationKey {
+    public:
+      VerificationKey(C_VerificationKey *raw) : raw(raw){}
+      ~VerificationKey();
+      VerificationSignature sign(const std::string);
+      bool verify(VerificationSignature, const std::string);
 
-class SigningKey {
-  public:
-    SigningKey();
-    ~SigningKey();
-    SignedToken sign(BlindedToken);
-    UnblindedToken rederive_unblinded_token(TokenPreimage);
+    private:
+      C_VerificationKey *raw;
+  };
 
-  private:
-    void *raw;
-};
+  class UnblindedToken {
+    public:
+      UnblindedToken(C_UnblindedToken *raw) : raw(raw){}
+      ~UnblindedToken();
+      VerificationKey derive_verification_key();
+      TokenPreimage preimage();
+      static UnblindedToken decode_base64(const std::string);
+      std::string encode_base64();
+
+    private:
+      C_UnblindedToken *raw;
+  };
+
+  class Token {
+    public:
+      Token(C_Token *raw) : raw(raw){}
+      static Token random();
+      ~Token();
+      BlindedToken blind();
+      UnblindedToken unblind(SignedToken);
+      static Token decode_base64(const std::string);
+      std::string encode_base64();
+
+    private:
+      C_Token *raw;
+  };
+
+  class SigningKey {
+    public:
+      SigningKey(C_SigningKey *raw) : raw(raw){}
+      ~SigningKey();
+      static SigningKey random();
+      SignedToken sign(BlindedToken);
+      UnblindedToken rederive_unblinded_token(TokenPreimage);
+      static SigningKey decode_base64(const std::string);
+      std::string encode_base64();
+
+    private:
+      C_SigningKey *raw;
+  };
+}

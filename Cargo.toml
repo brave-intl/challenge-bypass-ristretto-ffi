@@ -1,6 +1,5 @@
 [package]
 authors = ["eV <ev@7pr.xyz>"]
-edition = "2018"
 name = "challenge-bypass-ristretto-ffi"
 version = "0.1.0"
 
@@ -8,8 +7,14 @@ version = "0.1.0"
 base64 = "0.9.3"
 rand = "0.5.5"
 sha2 = "^0.7"
-challenge-bypass-ristretto = { git = "https://github.com/evq/challenge-bypass-ristretto" }
+
+[dependencies.challenge-bypass-ristretto]
+git = "https://github.com/evq/challenge-bypass-ristretto"
+features = ["base64"]
 
 [lib]
-crate-type = ["cdylib","staticlib"]
+crate-type = [
+    "cdylib",
+    "staticlib",
+]
 name = "challenge_bypass_ristretto"
