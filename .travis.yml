@@ -27,6 +27,8 @@ matrix:
       rust: nightly
       script:
         - cargo build
+        - make examples/cpp.out
+        - ./examples/cpp.out
     - name: "Windows Build"
       os: windows
       rust: nightly
