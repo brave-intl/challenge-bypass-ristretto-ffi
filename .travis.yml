@@ -19,6 +19,7 @@ matrix:
         - cargo clippy
         - cargo build
         - make examples/cpp.out
+        - valgrind --leak-check=yes ./examples/cpp.out
     - name: "OSX Build"
       os: osx
       rust: nightly
