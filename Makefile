@@ -35,7 +35,6 @@ go-lint:
 clean:
 	rm -rf target
 
-lint:
+lint: go-lint
 	cargo fmt -- --check
 	cargo clippy
-	go-lint

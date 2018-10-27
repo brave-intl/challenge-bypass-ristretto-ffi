@@ -3,7 +3,8 @@ language: rust
 matrix:
   include:
     - name: "Golang Lint"
-      golang: 1.11
+      language: golang
+      golang: "1.11"
       env:
       - GOLANGCI_RELEASE="v1.10.2"
       before_script:
