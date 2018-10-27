@@ -1,6 +1,15 @@
+#ifndef _CHALLENGE_BYPASS_RISTRETTO_LIB_H
+#define _CHALLENGE_BYPASS_RISTRETTO_LIB_H
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
+
+/*
+ * A `BatchDLEQProof` is a proof of the equivalence of the discrete logarithm between a common
+ * pair of points and one or more other pairs of points.
+ */
+typedef struct C_BatchDLEQProof C_BatchDLEQProof;
 
 /*
  * A `BlindedToken` is sent to the server for signing.
@@ -11,6 +20,16 @@
  * \\(P = T^r = H_1(t)^r\\)
  */
 typedef struct C_BlindedToken C_BlindedToken;
+
+/*
+ * A `DLEQProof` is a proof of the equivalence of the discrete logarithm between two pairs of points.
+ */
+typedef struct C_DLEQProof C_DLEQProof;
+
+/*
+ * A `PublicKey` is a committment by the server to a particular `SigningKey`.
+ */
+typedef struct C_PublicKey C_PublicKey;
 
 /*
  * A `SignedToken` is the result of signing an `BlindedToken`.
@@ -68,6 +87,44 @@ typedef struct C_VerificationSignature C_VerificationSignature;
  * If something goes wrong, this will return a null pointer. Don't forget to
  * destroy the returned pointer once you are done with it!
  */
+C_BatchDLEQProof *batch_dleq_proof_decode_base64(const char *s);
+
+/*
+ * Destroy a `BatchDLEQProof` once you are done with it.
+ */
+void batch_dleq_proof_destroy(C_BatchDLEQProof *p);
+
+/*
+ * Return base64 encoding as a C string.
+ */
+char *batch_dleq_proof_encode_base64(const C_BatchDLEQProof *t);
+
+/*
+ * Create a new batch DLEQ proof
+ *
+ * If something goes wrong, this will return a null pointer. Don't forget to
+ * destroy the `BatchDLEQProof` once you are done with it!
+ */
+C_BatchDLEQProof *batch_dleq_proof_new(const C_BlindedToken *const *blinded_tokens,
+                                       const C_SignedToken *const *signed_tokens,
+                                       int tokens_length,
+                                       const C_SigningKey *key);
+
+/*
+ * Verify a batch DLEQ proof
+ */
+bool batch_dleq_proof_verify(const C_BatchDLEQProof *proof,
+                             const C_BlindedToken *const *blinded_tokens,
+                             const C_SignedToken *const *signed_tokens,
+                             int tokens_length,
+                             const C_PublicKey *public_key);
+
+/*
+ * Decode base64 C string.
+ *
+ * If something goes wrong, this will return a null pointer. Don't forget to
+ * destroy the returned pointer once you are done with it!
+ */
 C_BlindedToken *blinded_token_decode_base64(const char *s);
 
 /*
@@ -84,6 +141,60 @@ char *blinded_token_encode_base64(const C_BlindedToken *t);
  * Destroy a `*c_char` once you are done with it.
  */
 void c_char_destroy(char *s);
+
+/*
+ * Decode base64 C string.
+ *
+ * If something goes wrong, this will return a null pointer. Don't forget to
+ * destroy the returned pointer once you are done with it!
+ */
+C_DLEQProof *dleq_proof_decode_base64(const char *s);
+
+/*
+ * Destroy a `DLEQProof` once you are done with it.
+ */
+void dleq_proof_destroy(C_DLEQProof *p);
+
+/*
+ * Return base64 encoding as a C string.
+ */
+char *dleq_proof_encode_base64(const C_DLEQProof *t);
+
+/*
+ * Create a new DLEQ proof
+ *
+ * If something goes wrong, this will return a null pointer. Don't forget to
+ * destroy the `DLEQProof` once you are done with it!
+ */
+C_DLEQProof *dleq_proof_new(const C_BlindedToken *blinded_token,
+                            const C_SignedToken *signed_token,
+                            const C_SigningKey *key);
+
+/*
+ * Verify a DLEQ proof
+ */
+bool dleq_proof_verify(const C_DLEQProof *proof,
+                       const C_BlindedToken *blinded_token,
+                       const C_SignedToken *signed_token,
+                       const C_PublicKey *public_key);
+
+/*
+ * Decode base64 C string.
+ *
+ * If something goes wrong, this will return a null pointer. Don't forget to
+ * destroy the returned pointer once you are done with it!
+ */
+C_PublicKey *public_key_decode_base64(const char *s);
+
+/*
+ * Destroy a `PublicKey` once you are done with it.
+ */
+void public_key_destroy(C_PublicKey *k);
+
+/*
+ * Return base64 encoding as a C string.
+ */
+char *public_key_encode_base64(const C_PublicKey *t);
 
 /*
  * Decode base64 C string.
@@ -120,6 +231,14 @@ void signing_key_destroy(C_SigningKey *key);
  * Return base64 encoding as a C string.
  */
 char *signing_key_encode_base64(const C_SigningKey *t);
+
+/*
+ * Take a reference to a `SigningKey` and return it's associated `PublicKey`
+ *
+ * If something goes wrong, this will return a null pointer. Don't forget to
+ * destroy the `PublicKey` once you are done with it!
+ */
+C_PublicKey *signing_key_get_public_key(const C_SigningKey *key);
 
 /*
  * Generate a new `SigningKey`
@@ -288,3 +407,5 @@ void verification_signature_destroy(C_VerificationSignature *sig);
  * Return base64 encoding as a C string.
  */
 char *verification_signature_encode_base64(const C_VerificationSignature *t);
+
+#endif /* _CHALLENGE_BYPASS_RISTRETTO_LIB_H */

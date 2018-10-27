@@ -2,6 +2,14 @@ language: rust
 
 matrix:
   include:
+    - name: "Golang Lint"
+      golang: 1.11
+      env:
+      - GOLANGCI_RELEASE="v1.10.2"
+      before_script:
+        - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $GOPATH/bin ${GOLANGCI_RELEASE}
+      script:
+        - make go-lint
     - name: "Golang Example"
       language: generic
       os: linux
