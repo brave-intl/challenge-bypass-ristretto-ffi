@@ -19,6 +19,9 @@ target/debug/libchallenge_bypass_ristretto.a: src/lib.rs Cargo.toml
 examples/golang.out: target/x86_64-unknown-linux-musl/debug/libchallenge_bypass_ristretto.a examples/golang/main.go lib.go src/lib.h
 	go build --ldflags '-extldflags "-static"' -o examples/golang.out examples/golang/main.go
 
+examples/golang.dyn.out: target/x86_64-unknown-linux-musl/debug/libchallenge_bypass_ristretto.a examples/golang/main.go lib.go src/lib.h
+	go build -o examples/golang.dyn.out examples/golang/main.go
+
 target/x86_64-unknown-linux-musl/debug/libchallenge_bypass_ristretto.a: src/lib.rs Cargo.toml
 	cargo build --target=x86_64-unknown-linux-musl
 

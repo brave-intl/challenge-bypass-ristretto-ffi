@@ -54,7 +54,9 @@ func (t *TokenPreimage) MarshalText() ([]byte, error) {
 
 // UnmarshalText unmarshalls the token preimage from text.
 func (t *TokenPreimage) UnmarshalText(text []byte) error {
-	raw := C.token_preimage_decode_base64(C.CString(string(text)))
+	cs := C.CString(string(text))
+	defer C.free(unsafe.Pointer(cs))
+	raw := C.token_preimage_decode_base64(cs)
 	if raw == nil {
 		return errors.New("Failed to decode token preimage")
 	}
@@ -119,7 +121,9 @@ func (t *Token) MarshalText() ([]byte, error) {
 
 // UnmarshalText unmarshalls the token from text.
 func (t *Token) UnmarshalText(text []byte) error {
-	raw := C.token_decode_base64(C.CString(string(text)))
+	cs := C.CString(string(text))
+	defer C.free(unsafe.Pointer(cs))
+	raw := C.token_decode_base64(cs)
 	if raw == nil {
 		return errors.New("Failed to decode token")
 	}
@@ -151,7 +155,9 @@ func (t *BlindedToken) MarshalText() ([]byte, error) {
 
 // UnmarshalText unmarshalls the blinded token from text.
 func (t *BlindedToken) UnmarshalText(text []byte) error {
-	raw := C.blinded_token_decode_base64(C.CString(string(text)))
+	cs := C.CString(string(text))
+	defer C.free(unsafe.Pointer(cs))
+	raw := C.blinded_token_decode_base64(cs)
 	if raw == nil {
 		return errors.New("Failed to decoded blinded token")
 	}
@@ -183,7 +189,9 @@ func (t *SignedToken) MarshalText() ([]byte, error) {
 
 // UnmarshalText unmarshalls the signed token from text.
 func (t *SignedToken) UnmarshalText(text []byte) error {
-	raw := C.signed_token_decode_base64(C.CString(string(text)))
+	cs := C.CString(string(text))
+	defer C.free(unsafe.Pointer(cs))
+	raw := C.signed_token_decode_base64(cs)
 	if raw == nil {
 		return errors.New("Failed to decode signed token")
 	}
@@ -250,7 +258,9 @@ func (k *SigningKey) MarshalText() ([]byte, error) {
 
 // UnmarshalText unmarshalls the signing key from text.
 func (k *SigningKey) UnmarshalText(text []byte) error {
-	raw := C.signing_key_decode_base64(C.CString(string(text)))
+	cs := C.CString(string(text))
+	defer C.free(unsafe.Pointer(cs))
+	raw := C.signing_key_decode_base64(cs)
 	if raw == nil {
 		return errors.New("Failed to decode signing key")
 	}
@@ -311,7 +321,9 @@ func (t *UnblindedToken) MarshalText() ([]byte, error) {
 
 // UnmarshalText unmarshalls the unblinded token from text.
 func (t *UnblindedToken) UnmarshalText(text []byte) error {
-	raw := C.unblinded_token_decode_base64(C.CString(string(text)))
+	cs := C.CString(string(text))
+	defer C.free(unsafe.Pointer(cs))
+	raw := C.unblinded_token_decode_base64(cs)
 	if raw == nil {
 		return errors.New("Failed to decode unblinded token")
 	}
@@ -333,7 +345,9 @@ func verificationKeyFinalizer(k *VerificationKey) {
 
 // Sign a message, producing a VerificationSignature
 func (k *VerificationKey) Sign(message string) (*VerificationSignature, error) {
-	raw := C.verification_key_sign_sha512(k.raw, C.CString(message))
+	cs := C.CString(message)
+	defer C.free(unsafe.Pointer(cs))
+	raw := C.verification_key_sign_sha512(k.raw, cs)
 	if raw == nil {
 		return nil, errors.New("Failed to sign message")
 	}
@@ -344,7 +358,9 @@ func (k *VerificationKey) Sign(message string) (*VerificationSignature, error) {
 
 // Verify that the signature of a message matches the provided `VerificationSignature`
 func (k *VerificationKey) Verify(sig *VerificationSignature, message string) bool {
-	return bool(C.verification_key_verify_sha512(k.raw, sig.raw, C.CString(message)))
+	cs := C.CString(message)
+	defer C.free(unsafe.Pointer(cs))
+	return bool(C.verification_key_verify_sha512(k.raw, sig.raw, cs))
 }
 
 // VerificationSignature which can be verified given the VerificationKey and message
@@ -370,7 +386,9 @@ func (t *VerificationSignature) MarshalText() ([]byte, error) {
 
 // UnmarshalText unmarshalls the unblinded token from text.
 func (t *VerificationSignature) UnmarshalText(text []byte) error {
-	raw := C.verification_signature_decode_base64(C.CString(string(text)))
+	cs := C.CString(string(text))
+	defer C.free(unsafe.Pointer(cs))
+	raw := C.verification_signature_decode_base64(cs)
 	if raw == nil {
 		return errors.New("Failed to decode verification signature")
 	}
@@ -402,7 +420,9 @@ func (t *PublicKey) MarshalText() ([]byte, error) {
 
 // UnmarshalText unmarshalls the unblinded token from text.
 func (t *PublicKey) UnmarshalText(text []byte) error {
-	raw := C.public_key_decode_base64(C.CString(string(text)))
+	cs := C.CString(string(text))
+	defer C.free(unsafe.Pointer(cs))
+	raw := C.public_key_decode_base64(cs)
 	if raw == nil {
 		return errors.New("Failed to decode public key")
 	}
@@ -450,7 +470,9 @@ func (proof *DLEQProof) MarshalText() ([]byte, error) {
 
 // UnmarshalText unmarshalls the unblinded token from text.
 func (proof *DLEQProof) UnmarshalText(text []byte) error {
-	raw := C.dleq_proof_decode_base64(C.CString(string(text)))
+	cs := C.CString(string(text))
+	defer C.free(unsafe.Pointer(cs))
+	raw := C.dleq_proof_decode_base64(cs)
 	if raw == nil {
 		return errors.New("Failed to decode DLEQ proof")
 	}
@@ -531,7 +553,9 @@ func (proof *BatchDLEQProof) MarshalText() ([]byte, error) {
 
 // UnmarshalText unmarshalls the unblinded token from text.
 func (proof *BatchDLEQProof) UnmarshalText(text []byte) error {
-	raw := C.batch_dleq_proof_decode_base64(C.CString(string(text)))
+	cs := C.CString(string(text))
+	defer C.free(unsafe.Pointer(cs))
+	raw := C.batch_dleq_proof_decode_base64(cs)
 	if raw == nil {
 		return errors.New("Failed to decode batch DLEQ proof")
 	}
