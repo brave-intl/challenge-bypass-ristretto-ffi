@@ -3,10 +3,10 @@ language: rust
 matrix:
   include:
     - name: "Golang Lint"
-      language: golang
-      golang: "1.11"
+      language: go
+      go: "1.11"
       env:
-      - GOLANGCI_RELEASE="v1.10.2"
+        - GOLANGCI_RELEASE="v1.10.2"
       before_script:
         - go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
       script:
