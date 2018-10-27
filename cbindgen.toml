@@ -1,5 +1,6 @@
 # The language to output bindings in
 language = "C"
+include_guard = "_CHALLENGE_BYPASS_RISTRETTO_LIB_H"
 
 [parse]
 # Whether to parse dependent crates and include their types in the generated
