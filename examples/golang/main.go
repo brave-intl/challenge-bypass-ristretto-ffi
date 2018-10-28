@@ -26,10 +26,7 @@ func main() {
 		log.Fatalln(err)
 	}
 	// client blinds the token and sends it to the server
-	blindedToken, err := token.Blind()
-	if err != nil {
-		log.Fatalln(err)
-	}
+	blindedToken := token.Blind()
 
 	type Request struct {
 		BlindedToken *crypto.BlindedToken `json:"blinded_token"`
@@ -64,7 +61,11 @@ func main() {
 	}
 
 	// client verifies the DLEQ proof
-	if !proof.Verify(blindedToken, signedToken, pKey) {
+	result, err := proof.Verify(blindedToken, signedToken, pKey)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	if !result {
 		log.Fatalln("Proof should have verified")
 	}
 
@@ -77,41 +78,37 @@ func main() {
 	// Redemption
 
 	// client derives the shared key from the unblinded token
-	clientvKey, err := clientUnblindedToken.DeriveVerificationKey()
-	if err != nil {
-		log.Fatalln(err)
-	}
+	clientvKey := clientUnblindedToken.DeriveVerificationKey()
 
 	// client signs a message using the shared key
 	clientSig, err := clientvKey.Sign("test message")
 	if err != nil {
 		log.Fatalln(err)
 	}
-	preimage, err := clientUnblindedToken.Preimage()
-	if err != nil {
-		log.Fatalln(err)
-	}
+	preimage := clientUnblindedToken.Preimage()
 	// client sends the token preimage, signature and message to the server
 
 	// server derives the unblinded token using it's key and the clients token preimage
-	serverUnblindedToken, err := sKey.RederiveUnblindedToken(preimage)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	serverUnblindedToken := sKey.RederiveUnblindedToken(preimage)
 
 	// server derives the shared key from the unblinded token
-	servervKey, err := serverUnblindedToken.DeriveVerificationKey()
+	servervKey := serverUnblindedToken.DeriveVerificationKey()
+
+	// server signs the same message using the shared key and compares the client signature to it's own
+	result, err = servervKey.Verify(clientSig, "test message")
 	if err != nil {
 		log.Fatalln(err)
 	}
-
-	// server signs the same message using the shared key and compares the client signature to it's own
-	if servervKey.Verify(clientSig, "test message") {
+	if result {
 		fmt.Println("sigs equal")
 	}
 
 	// server signs the wrong message using the shared key and compares the client signature to it's own
-	if servervKey.Verify(clientSig, "message") {
+	result, err = servervKey.Verify(clientSig, "message")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	if result {
 		log.Fatalln("ERROR: sigs equal")
 	}
 

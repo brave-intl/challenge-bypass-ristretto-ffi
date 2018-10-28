@@ -18,9 +18,10 @@ package challengebypassristrettoffi
 */
 import "C"
 import (
-	"errors"
 	"runtime"
 	"unsafe"
+
+	"github.com/pkg/errors"
 )
 
 // noCopy is embedded into structs which must not be copied.
@@ -31,6 +32,15 @@ type noCopy struct{}
 
 func (*noCopy) Lock()   {}
 func (*noCopy) Unlock() {}
+
+func wrapLastError(msg string) error {
+	orig := C.last_error_message()
+	if orig == nil {
+		return errors.New(msg)
+	}
+	defer C.c_char_destroy(orig)
+	return errors.Wrap(errors.New(C.GoString(orig)), msg)
+}
 
 // TokenPreimage is a slice of bytes which can be hashed to a `RistrettoPoint`.
 type TokenPreimage struct {
@@ -44,9 +54,12 @@ func tokenPreimageFinalizer(t *TokenPreimage) {
 
 // MarshalText marshalls the token preimage into text.
 func (t *TokenPreimage) MarshalText() ([]byte, error) {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	encoded := C.token_preimage_encode_base64(t.raw)
 	if encoded == nil {
-		return nil, errors.New("Failed to encode token preimage")
+		return nil, wrapLastError("Failed to encode token preimage")
 	}
 	defer C.c_char_destroy(encoded)
 	return []byte(C.GoString(encoded)), nil
@@ -54,11 +67,14 @@ func (t *TokenPreimage) MarshalText() ([]byte, error) {
 
 // UnmarshalText unmarshalls the token preimage from text.
 func (t *TokenPreimage) UnmarshalText(text []byte) error {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	cs := C.CString(string(text))
 	defer C.free(unsafe.Pointer(cs))
 	raw := C.token_preimage_decode_base64(cs)
 	if raw == nil {
-		return errors.New("Failed to decode token preimage")
+		return wrapLastError("Failed to decode token preimage")
 	}
 	*t = TokenPreimage{raw: raw}
 	runtime.SetFinalizer(t, tokenPreimageFinalizer)
@@ -78,9 +94,12 @@ func tokenFinalizer(t *Token) {
 
 // RandomToken generates a new random `Token` using the os random number generator.
 func RandomToken() (*Token, error) {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	raw := C.token_random()
 	if raw == nil {
-		return nil, errors.New("Failed to generate token")
+		return nil, wrapLastError("Failed to generate token")
 	}
 	tok := &Token{raw: raw}
 	runtime.SetFinalizer(tok, tokenFinalizer)
@@ -88,21 +107,27 @@ func RandomToken() (*Token, error) {
 }
 
 // Blind the Token, returning a BlindedToken to be sent to the server.
-func (t *Token) Blind() (*BlindedToken, error) {
+func (t *Token) Blind() *BlindedToken {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	raw := C.token_blind(t.raw)
 	if raw == nil {
-		return nil, errors.New("Failed to blind token")
+		panic(wrapLastError("Failed to blind token"))
 	}
 	tok := &BlindedToken{raw: raw}
 	runtime.SetFinalizer(tok, blindedTokenFinalizer)
-	return tok, nil
+	return tok
 }
 
 // Unblind a SignedToken` using the blinding factor of the original Token
 func (t *Token) Unblind(st *SignedToken) (*UnblindedToken, error) {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	raw := C.token_unblind(t.raw, st.raw)
 	if raw == nil {
-		return nil, errors.New("Failed to unblind token")
+		return nil, wrapLastError("Failed to unblind token")
 	}
 	tok := &UnblindedToken{raw: raw}
 	runtime.SetFinalizer(tok, unblindedTokenFinalizer)
@@ -111,9 +136,12 @@ func (t *Token) Unblind(st *SignedToken) (*UnblindedToken, error) {
 
 // MarshalText marshalls the token into text.
 func (t *Token) MarshalText() ([]byte, error) {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	encoded := C.token_encode_base64(t.raw)
 	if encoded == nil {
-		return nil, errors.New("Failed to encode token")
+		return nil, wrapLastError("Failed to encode token")
 	}
 	defer C.c_char_destroy(encoded)
 	return []byte(C.GoString(encoded)), nil
@@ -121,11 +149,14 @@ func (t *Token) MarshalText() ([]byte, error) {
 
 // UnmarshalText unmarshalls the token from text.
 func (t *Token) UnmarshalText(text []byte) error {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	cs := C.CString(string(text))
 	defer C.free(unsafe.Pointer(cs))
 	raw := C.token_decode_base64(cs)
 	if raw == nil {
-		return errors.New("Failed to decode token")
+		return wrapLastError("Failed to decode token")
 	}
 	*t = Token{raw: raw}
 	runtime.SetFinalizer(t, tokenFinalizer)
@@ -145,9 +176,12 @@ func blindedTokenFinalizer(t *BlindedToken) {
 
 // MarshalText marshalls the blinded token into text.
 func (t *BlindedToken) MarshalText() ([]byte, error) {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	encoded := C.blinded_token_encode_base64(t.raw)
 	if encoded == nil {
-		return nil, errors.New("Failed to encode blinded token")
+		return nil, wrapLastError("Failed to encode blinded token")
 	}
 	defer C.c_char_destroy(encoded)
 	return []byte(C.GoString(encoded)), nil
@@ -155,11 +189,14 @@ func (t *BlindedToken) MarshalText() ([]byte, error) {
 
 // UnmarshalText unmarshalls the blinded token from text.
 func (t *BlindedToken) UnmarshalText(text []byte) error {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	cs := C.CString(string(text))
 	defer C.free(unsafe.Pointer(cs))
 	raw := C.blinded_token_decode_base64(cs)
 	if raw == nil {
-		return errors.New("Failed to decoded blinded token")
+		return wrapLastError("Failed to decoded blinded token")
 	}
 	*t = BlindedToken{raw: raw}
 	runtime.SetFinalizer(t, blindedTokenFinalizer)
@@ -179,9 +216,12 @@ func signedTokenFinalizer(t *SignedToken) {
 
 // MarshalText marshalls the signed token into text.
 func (t *SignedToken) MarshalText() ([]byte, error) {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	encoded := C.signed_token_encode_base64(t.raw)
 	if encoded == nil {
-		return nil, errors.New("Failed to encode signed token")
+		return nil, wrapLastError("Failed to encode signed token")
 	}
 	defer C.c_char_destroy(encoded)
 	return []byte(C.GoString(encoded)), nil
@@ -189,11 +229,14 @@ func (t *SignedToken) MarshalText() ([]byte, error) {
 
 // UnmarshalText unmarshalls the signed token from text.
 func (t *SignedToken) UnmarshalText(text []byte) error {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	cs := C.CString(string(text))
 	defer C.free(unsafe.Pointer(cs))
 	raw := C.signed_token_decode_base64(cs)
 	if raw == nil {
-		return errors.New("Failed to decode signed token")
+		return wrapLastError("Failed to decode signed token")
 	}
 	*t = SignedToken{raw: raw}
 	runtime.SetFinalizer(t, signedTokenFinalizer)
@@ -215,9 +258,12 @@ func signingKeyFinalizer(k *SigningKey) {
 
 // Sign the provided BlindedToken.
 func (k *SigningKey) Sign(t *BlindedToken) (*SignedToken, error) {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	raw := C.signing_key_sign(k.raw, t.raw)
 	if raw == nil {
-		return nil, errors.New("Failed to sign token")
+		return nil, wrapLastError("Failed to sign token")
 	}
 	tok := &SignedToken{raw: raw}
 	runtime.SetFinalizer(tok, signedTokenFinalizer)
@@ -225,21 +271,27 @@ func (k *SigningKey) Sign(t *BlindedToken) (*SignedToken, error) {
 }
 
 // RederiveUnblindedToken via the token preimage of the provided UnblindedToken
-func (k *SigningKey) RederiveUnblindedToken(t *TokenPreimage) (*UnblindedToken, error) {
+func (k *SigningKey) RederiveUnblindedToken(t *TokenPreimage) *UnblindedToken {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	raw := C.signing_key_rederive_unblinded_token(k.raw, t.raw)
 	if raw == nil {
-		return nil, errors.New("Failed to rederive unblinded token")
+		panic(wrapLastError("Failed to rederive unblinded token"))
 	}
 	tok := &UnblindedToken{raw: raw}
 	runtime.SetFinalizer(tok, unblindedTokenFinalizer)
-	return tok, nil
+	return tok
 }
 
 // RandomSigningKey generates a new random `SigningKey` using the os random number generator.
 func RandomSigningKey() (*SigningKey, error) {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	raw := C.signing_key_random()
 	if raw == nil {
-		return nil, errors.New("Failed to generate signing key")
+		return nil, wrapLastError("Failed to generate signing key")
 	}
 	key := &SigningKey{raw: raw}
 	runtime.SetFinalizer(key, signingKeyFinalizer)
@@ -248,9 +300,12 @@ func RandomSigningKey() (*SigningKey, error) {
 
 // MarshalText marshalls the signing key into text.
 func (k *SigningKey) MarshalText() ([]byte, error) {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	encoded := C.signing_key_encode_base64(k.raw)
 	if encoded == nil {
-		return nil, errors.New("Failed to encode signing key")
+		return nil, wrapLastError("Failed to encode signing key")
 	}
 	defer C.c_char_destroy(encoded)
 	return []byte(C.GoString(encoded)), nil
@@ -258,11 +313,14 @@ func (k *SigningKey) MarshalText() ([]byte, error) {
 
 // UnmarshalText unmarshalls the signing key from text.
 func (k *SigningKey) UnmarshalText(text []byte) error {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	cs := C.CString(string(text))
 	defer C.free(unsafe.Pointer(cs))
 	raw := C.signing_key_decode_base64(cs)
 	if raw == nil {
-		return errors.New("Failed to decode signing key")
+		return wrapLastError("Failed to decode signing key")
 	}
 	*k = SigningKey{raw: raw}
 	runtime.SetFinalizer(k, signingKeyFinalizer)
@@ -271,7 +329,14 @@ func (k *SigningKey) UnmarshalText(text []byte) error {
 
 // PublicKey returns the public key associated with this SigningKey
 func (k *SigningKey) PublicKey() *PublicKey {
-	pub := &PublicKey{raw: C.signing_key_get_public_key(k.raw)}
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
+	raw := C.signing_key_get_public_key(k.raw)
+	if raw == nil {
+		panic(wrapLastError("Failed to get public key for signing key"))
+	}
+	pub := &PublicKey{raw: raw}
 	runtime.SetFinalizer(pub, publicKeyFinalizer)
 	return pub
 }
@@ -288,32 +353,41 @@ func unblindedTokenFinalizer(t *UnblindedToken) {
 }
 
 // DeriveVerificationKey for this particular UnblindedToken
-func (t *UnblindedToken) DeriveVerificationKey() (*VerificationKey, error) {
+func (t *UnblindedToken) DeriveVerificationKey() *VerificationKey {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	raw := C.unblinded_token_derive_verification_key_sha512(t.raw)
 	if raw == nil {
-		return nil, errors.New("Failed to derive verification key")
+		panic(wrapLastError("Failed to derive verification key"))
 	}
 	key := &VerificationKey{raw: raw}
 	runtime.SetFinalizer(key, verificationKeyFinalizer)
-	return key, nil
+	return key
 }
 
 // Preimage returns the TokenPreimage for this particular UnblindedToken
-func (t *UnblindedToken) Preimage() (*TokenPreimage, error) {
+func (t *UnblindedToken) Preimage() *TokenPreimage {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	raw := C.unblinded_token_preimage(t.raw)
 	if raw == nil {
-		return nil, errors.New("Failed to get preimage")
+		panic(wrapLastError("Failed to get token preimage for unblinded token"))
 	}
 	tok := &TokenPreimage{raw: raw}
 	runtime.SetFinalizer(tok, tokenPreimageFinalizer)
-	return tok, nil
+	return tok
 }
 
 // MarshalText marshalls the unblinded token into text.
 func (t *UnblindedToken) MarshalText() ([]byte, error) {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	encoded := C.unblinded_token_encode_base64(t.raw)
 	if encoded == nil {
-		return nil, errors.New("Failed to encode unblinded token")
+		return nil, wrapLastError("Failed to encode unblinded token")
 	}
 	defer C.c_char_destroy(encoded)
 	return []byte(C.GoString(encoded)), nil
@@ -321,11 +395,14 @@ func (t *UnblindedToken) MarshalText() ([]byte, error) {
 
 // UnmarshalText unmarshalls the unblinded token from text.
 func (t *UnblindedToken) UnmarshalText(text []byte) error {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	cs := C.CString(string(text))
 	defer C.free(unsafe.Pointer(cs))
 	raw := C.unblinded_token_decode_base64(cs)
 	if raw == nil {
-		return errors.New("Failed to decode unblinded token")
+		return wrapLastError("Failed to decode unblinded token")
 	}
 	*t = UnblindedToken{raw: raw}
 	runtime.SetFinalizer(t, unblindedTokenFinalizer)
@@ -345,11 +422,14 @@ func verificationKeyFinalizer(k *VerificationKey) {
 
 // Sign a message, producing a VerificationSignature
 func (k *VerificationKey) Sign(message string) (*VerificationSignature, error) {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	cs := C.CString(message)
 	defer C.free(unsafe.Pointer(cs))
 	raw := C.verification_key_sign_sha512(k.raw, cs)
 	if raw == nil {
-		return nil, errors.New("Failed to sign message")
+		return nil, wrapLastError("Failed to sign message")
 	}
 	sig := &VerificationSignature{raw: raw}
 	runtime.SetFinalizer(sig, verificationSignatureFinalizer)
@@ -357,10 +437,17 @@ func (k *VerificationKey) Sign(message string) (*VerificationSignature, error) {
 }
 
 // Verify that the signature of a message matches the provided `VerificationSignature`
-func (k *VerificationKey) Verify(sig *VerificationSignature, message string) bool {
+func (k *VerificationKey) Verify(sig *VerificationSignature, message string) (bool, error) {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	cs := C.CString(message)
 	defer C.free(unsafe.Pointer(cs))
-	return bool(C.verification_key_verify_sha512(k.raw, sig.raw, cs))
+	result := C.verification_key_invalid_sha512(k.raw, sig.raw, cs)
+	if result < 0 {
+		return false, wrapLastError("Failed to verify message signature")
+	}
+	return result == 0, nil
 }
 
 // VerificationSignature which can be verified given the VerificationKey and message
@@ -376,9 +463,12 @@ func verificationSignatureFinalizer(s *VerificationSignature) {
 
 // MarshalText marshalls the verification signature into text.
 func (t *VerificationSignature) MarshalText() ([]byte, error) {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	encoded := C.verification_signature_encode_base64(t.raw)
 	if encoded == nil {
-		return nil, errors.New("Failed to encode verification signature")
+		return nil, wrapLastError("Failed to encode verification signature")
 	}
 	defer C.c_char_destroy(encoded)
 	return []byte(C.GoString(encoded)), nil
@@ -386,11 +476,14 @@ func (t *VerificationSignature) MarshalText() ([]byte, error) {
 
 // UnmarshalText unmarshalls the unblinded token from text.
 func (t *VerificationSignature) UnmarshalText(text []byte) error {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	cs := C.CString(string(text))
 	defer C.free(unsafe.Pointer(cs))
 	raw := C.verification_signature_decode_base64(cs)
 	if raw == nil {
-		return errors.New("Failed to decode verification signature")
+		return wrapLastError("Failed to decode verification signature")
 	}
 	*t = VerificationSignature{raw: raw}
 	runtime.SetFinalizer(t, verificationSignatureFinalizer)
@@ -410,9 +503,12 @@ func publicKeyFinalizer(k *PublicKey) {
 
 // MarshalText marshalls the verification signature into text.
 func (t *PublicKey) MarshalText() ([]byte, error) {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	encoded := C.public_key_encode_base64(t.raw)
 	if encoded == nil {
-		return nil, errors.New("Failed to encode public key")
+		return nil, wrapLastError("Failed to encode public key")
 	}
 	defer C.c_char_destroy(encoded)
 	return []byte(C.GoString(encoded)), nil
@@ -420,11 +516,14 @@ func (t *PublicKey) MarshalText() ([]byte, error) {
 
 // UnmarshalText unmarshalls the unblinded token from text.
 func (t *PublicKey) UnmarshalText(text []byte) error {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	cs := C.CString(string(text))
 	defer C.free(unsafe.Pointer(cs))
 	raw := C.public_key_decode_base64(cs)
 	if raw == nil {
-		return errors.New("Failed to decode public key")
+		return wrapLastError("Failed to decode public key")
 	}
 	*t = PublicKey{raw: raw}
 	runtime.SetFinalizer(t, publicKeyFinalizer)
@@ -444,9 +543,12 @@ func dleqProofFinalizer(p *DLEQProof) {
 
 // NewDLEQProof showing SignedToken is the result of signing BlindedToken with the given SigningKey
 func NewDLEQProof(blindedToken *BlindedToken, signedToken *SignedToken, key *SigningKey) (*DLEQProof, error) {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	raw := C.dleq_proof_new(blindedToken.raw, signedToken.raw, key.raw)
 	if raw == nil {
-		return nil, errors.New("Failed to create new DLEQ proof")
+		return nil, wrapLastError("Failed to create new DLEQ proof")
 	}
 	proof := &DLEQProof{raw: raw}
 	runtime.SetFinalizer(proof, dleqProofFinalizer)
@@ -454,15 +556,25 @@ func NewDLEQProof(blindedToken *BlindedToken, signedToken *SignedToken, key *Sig
 }
 
 // Verify that the DLEQProof shows the SignedToken is BlindedToken signed by the same SigningKey as PublicKey
-func (proof *DLEQProof) Verify(blindedToken *BlindedToken, signedToken *SignedToken, publicKey *PublicKey) bool {
-	return bool(C.dleq_proof_verify(proof.raw, blindedToken.raw, signedToken.raw, publicKey.raw))
+func (proof *DLEQProof) Verify(blindedToken *BlindedToken, signedToken *SignedToken, publicKey *PublicKey) (bool, error) {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
+	result := C.dleq_proof_invalid(proof.raw, blindedToken.raw, signedToken.raw, publicKey.raw)
+	if result < 0 {
+		return false, wrapLastError("Failed to verify DLEQ proof")
+	}
+	return result == 0, nil
 }
 
 // MarshalText marshalls the verification signature into text.
 func (proof *DLEQProof) MarshalText() ([]byte, error) {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	encoded := C.dleq_proof_encode_base64(proof.raw)
 	if encoded == nil {
-		return nil, errors.New("Failed to encode DLEQ proof")
+		return nil, wrapLastError("Failed to encode DLEQ proof")
 	}
 	defer C.c_char_destroy(encoded)
 	return []byte(C.GoString(encoded)), nil
@@ -470,11 +582,14 @@ func (proof *DLEQProof) MarshalText() ([]byte, error) {
 
 // UnmarshalText unmarshalls the unblinded token from text.
 func (proof *DLEQProof) UnmarshalText(text []byte) error {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	cs := C.CString(string(text))
 	defer C.free(unsafe.Pointer(cs))
 	raw := C.dleq_proof_decode_base64(cs)
 	if raw == nil {
-		return errors.New("Failed to decode DLEQ proof")
+		return wrapLastError("Failed to decode DLEQ proof")
 	}
 	*proof = DLEQProof{raw: raw}
 	runtime.SetFinalizer(proof, dleqProofFinalizer)
@@ -508,12 +623,15 @@ func NewBatchDLEQProof(blindedTokens []*BlindedToken, signedTokens []*SignedToke
 		cSignedTokens[k] = v.raw
 	}
 
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	raw := C.batch_dleq_proof_new(
 		(**C.C_BlindedToken)(unsafe.Pointer(&cBlindedTokens[0])),
 		(**C.C_SignedToken)(unsafe.Pointer(&cSignedTokens[0])),
 		C.int(len(cBlindedTokens)), key.raw)
 	if raw == nil {
-		return nil, errors.New("Failed to create new DLEQ proof")
+		return nil, wrapLastError("Failed to create new DLEQ proof")
 	}
 	proof := &BatchDLEQProof{raw: raw}
 	runtime.SetFinalizer(proof, batchDleqProofFinalizer)
@@ -521,9 +639,9 @@ func NewBatchDLEQProof(blindedTokens []*BlindedToken, signedTokens []*SignedToke
 }
 
 // Verify that the BatchDLEQProof shows each SignedToken is a BlindedToken signed by the same SigningKey as PublicKey
-func (proof *BatchDLEQProof) Verify(blindedTokens []*BlindedToken, signedTokens []*SignedToken, publicKey *PublicKey) bool {
+func (proof *BatchDLEQProof) Verify(blindedTokens []*BlindedToken, signedTokens []*SignedToken, publicKey *PublicKey) (bool, error) {
 	if len(blindedTokens) != len(signedTokens) {
-		return false
+		return false, errors.New("Blinded tokens and signed tokens must have same length")
 	}
 
 	cBlindedTokens := make([]*C.C_BlindedToken, len(blindedTokens), len(blindedTokens))
@@ -535,17 +653,28 @@ func (proof *BatchDLEQProof) Verify(blindedTokens []*BlindedToken, signedTokens 
 		cSignedTokens[k] = v.raw
 	}
 
-	return bool(C.batch_dleq_proof_verify(proof.raw,
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
+	result := C.batch_dleq_proof_invalid(proof.raw,
 		(**C.C_BlindedToken)(unsafe.Pointer(&cBlindedTokens[0])),
 		(**C.C_SignedToken)(unsafe.Pointer(&cSignedTokens[0])),
-		C.int(len(cBlindedTokens)), publicKey.raw))
+		C.int(len(cBlindedTokens)), publicKey.raw)
+
+	if result < 0 {
+		return false, wrapLastError("Failed to verify batch DLEQ proof")
+	}
+	return result == 0, nil
 }
 
 // MarshalText marshalls the verification signature into text.
 func (proof *BatchDLEQProof) MarshalText() ([]byte, error) {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	encoded := C.batch_dleq_proof_encode_base64(proof.raw)
 	if encoded == nil {
-		return nil, errors.New("Failed to encode batch DLEQ proof")
+		return nil, wrapLastError("Failed to encode batch DLEQ proof")
 	}
 	defer C.c_char_destroy(encoded)
 	return []byte(C.GoString(encoded)), nil
@@ -553,11 +682,14 @@ func (proof *BatchDLEQProof) MarshalText() ([]byte, error) {
 
 // UnmarshalText unmarshalls the unblinded token from text.
 func (proof *BatchDLEQProof) UnmarshalText(text []byte) error {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	cs := C.CString(string(text))
 	defer C.free(unsafe.Pointer(cs))
 	raw := C.batch_dleq_proof_decode_base64(cs)
 	if raw == nil {
-		return errors.New("Failed to decode batch DLEQ proof")
+		return wrapLastError("Failed to decode batch DLEQ proof")
 	}
 	*proof = BatchDLEQProof{raw: raw}
 	runtime.SetFinalizer(proof, batchDleqProofFinalizer)

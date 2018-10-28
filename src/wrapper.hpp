@@ -11,6 +11,18 @@ extern "C" {
 }
 
 namespace challenge_bypass_ristretto {
+  class TokenException : std::exception {
+  public:
+    TokenException(const std::string& msg) : msg(msg){};
+    static TokenException last_error(std::string msg);
+    const char * what () const throw () {
+        return msg.c_str();
+     }
+
+  private:
+    std::string msg;
+  };
+
   class TokenPreimage {
     friend class SigningKey;
 
