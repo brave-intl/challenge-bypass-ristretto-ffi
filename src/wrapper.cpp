@@ -16,15 +16,6 @@ namespace challenge_bypass_ristretto {
       return TokenException(default_msg);
     }
   }
-
-  void TokenException::check_last_error(std::string default_msg) {
-    char* tmp = last_error_message();
-    if (tmp != nullptr) {
-      std::string msg = std::string(tmp);
-      c_char_destroy(tmp);
-      throw TokenException(msg);
-    }
-  }
 }
 
 // class TokenPreimage
@@ -181,11 +172,11 @@ namespace challenge_bypass_ristretto {
   }
 
   bool VerificationKey::verify(VerificationSignature sig, const std::string message) {
-    bool result = verification_key_verify_sha512(raw.get(), sig.raw.get(), message.c_str());
-    if (!result) {
-      TokenException::check_last_error("Failed to verify message signature");
+    int result = verification_key_invalid_sha512(raw.get(), sig.raw.get(), message.c_str());
+    if (result < 0) {
+      throw TokenException::last_error("Failed to verify message signature");
     }
-    return result;
+    return result == 0;
   }
 }
 
@@ -260,11 +251,11 @@ namespace challenge_bypass_ristretto {
   }
 
   bool DLEQProof::verify(BlindedToken blinded_token, SignedToken signed_token, PublicKey key) { 
-    bool result = dleq_proof_verify(raw.get(), blinded_token.raw.get(), signed_token.raw.get(), key.raw.get());
-    if (!result) {
-      TokenException::check_last_error("Failed to verify DLEQ proof");
+    int result = dleq_proof_invalid(raw.get(), blinded_token.raw.get(), signed_token.raw.get(), key.raw.get());
+    if (result < 0) {
+      throw TokenException::last_error("Failed to verify DLEQ proof");
     }
-    return result;
+    return result == 0;
   }
 
   DLEQProof DLEQProof::decode_base64(const std::string encoded) { 
@@ -315,11 +306,11 @@ namespace challenge_bypass_ristretto {
       raw_signed_tokens.push_back(signed_tokens[i].raw.get());
     }
 
-    bool result = bool(batch_dleq_proof_verify(raw.get(), raw_blinded_tokens.data(), raw_signed_tokens.data(), blinded_tokens.size(), key.raw.get()));
-    if (!result) {
-      TokenException::check_last_error("Failed to verify DLEQ proof");
+    int result = batch_dleq_proof_invalid(raw.get(), raw_blinded_tokens.data(), raw_signed_tokens.data(), blinded_tokens.size(), key.raw.get());
+    if (result < 0) {
+      throw TokenException::last_error("Failed to verify DLEQ proof");
     }
-    return result;
+    return result == 0;
   }
 
   BatchDLEQProof BatchDLEQProof::decode_base64(const std::string encoded) { 

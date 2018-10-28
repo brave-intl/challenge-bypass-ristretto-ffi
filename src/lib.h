@@ -82,7 +82,7 @@ typedef struct C_VerificationKey C_VerificationKey;
 typedef struct C_VerificationSignature C_VerificationSignature;
 
 /*
- * Decode base64 C string.
+ * Decode from base64 C string.
  *
  * If something goes wrong, this will return a null pointer. Don't forget to
  * destroy the returned pointer once you are done with it!
@@ -100,6 +100,20 @@ void batch_dleq_proof_destroy(C_BatchDLEQProof *p);
 char *batch_dleq_proof_encode_base64(const C_BatchDLEQProof *t);
 
 /*
+ * Check if a batch DLEQ proof is invalid
+ *
+ * Returns -1 if an error was encountered, 1 if the proof failed verification and 0 if valid
+ *
+ * NOTE this is named "invalid" instead of "verify" as it returns true (non-zero) when
+ * the proof is invalid and false (zero) when valid
+ */
+int batch_dleq_proof_invalid(const C_BatchDLEQProof *proof,
+                             const C_BlindedToken *const *blinded_tokens,
+                             const C_SignedToken *const *signed_tokens,
+                             int tokens_length,
+                             const C_PublicKey *public_key);
+
+/*
  * Create a new batch DLEQ proof
  *
  * If something goes wrong, this will return a null pointer. Don't forget to
@@ -111,16 +125,7 @@ C_BatchDLEQProof *batch_dleq_proof_new(const C_BlindedToken *const *blinded_toke
                                        const C_SigningKey *key);
 
 /*
- * Verify a batch DLEQ proof
- */
-bool batch_dleq_proof_verify(const C_BatchDLEQProof *proof,
-                             const C_BlindedToken *const *blinded_tokens,
-                             const C_SignedToken *const *signed_tokens,
-                             int tokens_length,
-                             const C_PublicKey *public_key);
-
-/*
- * Decode base64 C string.
+ * Decode from base64 C string.
  *
  * If something goes wrong, this will return a null pointer. Don't forget to
  * destroy the returned pointer once you are done with it!
@@ -143,7 +148,7 @@ char *blinded_token_encode_base64(const C_BlindedToken *t);
 void c_char_destroy(char *s);
 
 /*
- * Decode base64 C string.
+ * Decode from base64 C string.
  *
  * If something goes wrong, this will return a null pointer. Don't forget to
  * destroy the returned pointer once you are done with it!
@@ -161,6 +166,19 @@ void dleq_proof_destroy(C_DLEQProof *p);
 char *dleq_proof_encode_base64(const C_DLEQProof *t);
 
 /*
+ * Check if a DLEQ proof is invalid
+ *
+ * Returns -1 if an error was encountered, 1 if the proof failed verification and 0 if valid
+ *
+ * NOTE this is named "invalid" instead of "verify" as it returns true (non-zero) when
+ * the proof is invalid and false (zero) when valid
+ */
+int dleq_proof_invalid(const C_DLEQProof *proof,
+                       const C_BlindedToken *blinded_token,
+                       const C_SignedToken *signed_token,
+                       const C_PublicKey *public_key);
+
+/*
  * Create a new DLEQ proof
  *
  * If something goes wrong, this will return a null pointer. Don't forget to
@@ -171,20 +189,12 @@ C_DLEQProof *dleq_proof_new(const C_BlindedToken *blinded_token,
                             const C_SigningKey *key);
 
 /*
- * Verify a DLEQ proof
- */
-bool dleq_proof_verify(const C_DLEQProof *proof,
-                       const C_BlindedToken *blinded_token,
-                       const C_SignedToken *signed_token,
-                       const C_PublicKey *public_key);
-
-/*
- * Return the message associated with the last error.
+ * Clear and return the message associated with the last error.
  */
 char *last_error_message(void);
 
 /*
- * Decode base64 C string.
+ * Decode from base64 C string.
  *
  * If something goes wrong, this will return a null pointer. Don't forget to
  * destroy the returned pointer once you are done with it!
@@ -202,7 +212,7 @@ void public_key_destroy(C_PublicKey *k);
 char *public_key_encode_base64(const C_PublicKey *t);
 
 /*
- * Decode base64 C string.
+ * Decode from base64 C string.
  *
  * If something goes wrong, this will return a null pointer. Don't forget to
  * destroy the returned pointer once you are done with it!
@@ -220,7 +230,7 @@ void signed_token_destroy(C_SignedToken *token);
 char *signed_token_encode_base64(const C_SignedToken *t);
 
 /*
- * Decode base64 C string.
+ * Decode from base64 C string.
  *
  * If something goes wrong, this will return a null pointer. Don't forget to
  * destroy the returned pointer once you are done with it!
@@ -282,7 +292,7 @@ C_SignedToken *signing_key_sign(const C_SigningKey *key, const C_BlindedToken *t
 C_BlindedToken *token_blind(const C_Token *token);
 
 /*
- * Decode base64 C string.
+ * Decode from base64 C string.
  *
  * If something goes wrong, this will return a null pointer. Don't forget to
  * destroy the returned pointer once you are done with it!
@@ -300,7 +310,7 @@ void token_destroy(C_Token *token);
 char *token_encode_base64(const C_Token *t);
 
 /*
- * Decode base64 C string.
+ * Decode from base64 C string.
  *
  * If something goes wrong, this will return a null pointer. Don't forget to
  * destroy the returned pointer once you are done with it!
@@ -337,7 +347,7 @@ C_UnblindedToken *token_unblind(const C_Token *token,
                                 const C_SignedToken *signed_token);
 
 /*
- * Decode base64 C string.
+ * Decode from base64 C string.
  *
  * If something goes wrong, this will return a null pointer. Don't forget to
  * destroy the returned pointer once you are done with it!
@@ -377,6 +387,19 @@ C_TokenPreimage *unblinded_token_preimage(const C_UnblindedToken *token);
 void verification_key_destroy(C_VerificationKey *key);
 
 /*
+ * Take a reference to a `VerificationKey` and use it to verify an
+ * existing `VerificationSignature` using Sha512 as the HMAC hash function
+ *
+ * Returns -1 if an error was encountered, 1 if the signature failed verification and 0 if valid
+ *
+ * NOTE this is named "invalid" instead of "verify" as it returns true (non-zero) when
+ * the signature is invalid and false (zero) when valid
+ */
+int verification_key_invalid_sha512(const C_VerificationKey *key,
+                                    const C_VerificationSignature *sig,
+                                    const char *message);
+
+/*
  * Take a reference to a `VerificationKey` and use it to sign a message
  * using Sha512 as the HMAC hash function to obtain a `VerificationSignature`
  *
@@ -387,16 +410,7 @@ C_VerificationSignature *verification_key_sign_sha512(const C_VerificationKey *k
                                                       const char *message);
 
 /*
- * Take a reference to a `VerificationKey` and use it to verify an
- * existing `VerificationSignature` using Sha512 as the HMAC hash function
- *
- */
-bool verification_key_verify_sha512(const C_VerificationKey *key,
-                                    const C_VerificationSignature *sig,
-                                    const char *message);
-
-/*
- * Decode base64 C string.
+ * Decode from base64 C string.
  *
  * If something goes wrong, this will return a null pointer. Don't forget to
  * destroy the returned pointer once you are done with it!

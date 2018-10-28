@@ -42,15 +42,6 @@ func wrapLastError(msg string) error {
 	return errors.Wrap(errors.New(C.GoString(orig)), msg)
 }
 
-func wrapIfError(msg string) error {
-	orig := C.last_error_message()
-	if orig == nil {
-		return nil
-	}
-	defer C.c_char_destroy(orig)
-	return errors.Wrap(errors.New(C.GoString(orig)), msg)
-}
-
 // TokenPreimage is a slice of bytes which can be hashed to a `RistrettoPoint`.
 type TokenPreimage struct {
 	raw    *C.C_TokenPreimage
@@ -452,11 +443,11 @@ func (k *VerificationKey) Verify(sig *VerificationSignature, message string) (bo
 
 	cs := C.CString(message)
 	defer C.free(unsafe.Pointer(cs))
-	result := bool(C.verification_key_verify_sha512(k.raw, sig.raw, cs))
-	if !result {
-		return result, wrapIfError("Failed to verify message signature")
+	result := C.verification_key_invalid_sha512(k.raw, sig.raw, cs)
+	if result < 0 {
+		return false, wrapLastError("Failed to verify message signature")
 	}
-	return result, nil
+	return result == 0, nil
 }
 
 // VerificationSignature which can be verified given the VerificationKey and message
@@ -569,11 +560,11 @@ func (proof *DLEQProof) Verify(blindedToken *BlindedToken, signedToken *SignedTo
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
-	result := bool(C.dleq_proof_verify(proof.raw, blindedToken.raw, signedToken.raw, publicKey.raw))
-	if !result {
-		return result, wrapIfError("Failed to verify DLEQ proof")
+	result := C.dleq_proof_invalid(proof.raw, blindedToken.raw, signedToken.raw, publicKey.raw)
+	if result < 0 {
+		return false, wrapLastError("Failed to verify DLEQ proof")
 	}
-	return result, nil
+	return result == 0, nil
 }
 
 // MarshalText marshalls the verification signature into text.
@@ -665,15 +656,15 @@ func (proof *BatchDLEQProof) Verify(blindedTokens []*BlindedToken, signedTokens 
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
-	result := bool(C.batch_dleq_proof_verify(proof.raw,
+	result := C.batch_dleq_proof_invalid(proof.raw,
 		(**C.C_BlindedToken)(unsafe.Pointer(&cBlindedTokens[0])),
 		(**C.C_SignedToken)(unsafe.Pointer(&cSignedTokens[0])),
-		C.int(len(cBlindedTokens)), publicKey.raw))
+		C.int(len(cBlindedTokens)), publicKey.raw)
 
-	if !result {
-		return result, wrapIfError("Failed to verify batch DLEQ proof")
+	if result < 0 {
+		return false, wrapLastError("Failed to verify batch DLEQ proof")
 	}
-	return result, nil
+	return result == 0, nil
 }
 
 // MarshalText marshalls the verification signature into text.

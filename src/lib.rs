@@ -282,15 +282,19 @@ pub unsafe extern "C" fn verification_key_sign_sha512(
 /// Take a reference to a `VerificationKey` and use it to verify an
 /// existing `VerificationSignature` using Sha512 as the HMAC hash function
 ///
+/// Returns -1 if an error was encountered, 1 if the signature failed verification and 0 if valid
+///
+/// NOTE this is named "invalid" instead of "verify" as it returns true (non-zero) when
+/// the signature is invalid and false (zero) when valid
 #[no_mangle]
-pub unsafe extern "C" fn verification_key_verify_sha512(
+pub unsafe extern "C" fn verification_key_invalid_sha512(
     key: *const VerificationKey,
     sig: *const VerificationSignature,
     message: *const c_char,
-) -> bool {
+) -> c_int {
     if key.is_null() || sig.is_null() {
         update_last_error("Pointer to verification key or signature was null");
-        return false;
+        return -1;
     }
 
     let raw = CStr::from_ptr(message);
@@ -299,10 +303,14 @@ pub unsafe extern "C" fn verification_key_verify_sha512(
         Ok(s) => s,
         Err(err) => {
             update_last_error(err);
-            return false;
+            return -1;
         }
     };
-    (*key).verify::<Sha512>(&*sig, message_as_str.as_bytes())
+    if (*key).verify::<Sha512>(&*sig, message_as_str.as_bytes()) {
+        return 0;
+    } else {
+        return 1;
+    }
 }
 
 /// Destroy a `VerificationSignature` once you are done with it.
@@ -443,35 +451,40 @@ pub unsafe extern "C" fn dleq_proof_new(
     return ptr::null_mut();
 }
 
-/// Verify a DLEQ proof
+/// Check if a DLEQ proof is invalid
+///
+/// Returns -1 if an error was encountered, 1 if the proof failed verification and 0 if valid
+///
+/// NOTE this is named "invalid" instead of "verify" as it returns true (non-zero) when
+/// the proof is invalid and false (zero) when valid
 #[no_mangle]
-pub unsafe extern "C" fn dleq_proof_verify(
+pub unsafe extern "C" fn dleq_proof_invalid(
     proof: *const DLEQProof,
     blinded_token: *const BlindedToken,
     signed_token: *const SignedToken,
     public_key: *const PublicKey,
-) -> bool {
+) -> c_int {
     if !proof.is_null()
         && !blinded_token.is_null()
         && !signed_token.is_null()
         && !public_key.is_null()
     {
         match (*proof).verify::<Sha512>(&*blinded_token, &*signed_token, &*public_key) {
-            Ok(_) => return true,
+            Ok(_) => return 0,
             Err(err) => {
                 if let Some(InternalError::VerifyError) =
                     err.source().unwrap().downcast_ref::<InternalError>()
                 {
-                    return false;
+                    return 1;
                 } else {
                     update_last_error(err);
-                    return false;
+                    return -1;
                 }
             }
         }
     }
     update_last_error("Pointer to proof, blinded token, signed token or signing key was null");
-    return false;
+    return -1;
 }
 
 /// Destroy a `PublicKey` once you are done with it.
@@ -544,15 +557,20 @@ pub unsafe extern "C" fn batch_dleq_proof_new(
     return ptr::null_mut();
 }
 
-/// Verify a batch DLEQ proof
+/// Check if a batch DLEQ proof is invalid
+///
+/// Returns -1 if an error was encountered, 1 if the proof failed verification and 0 if valid
+///
+/// NOTE this is named "invalid" instead of "verify" as it returns true (non-zero) when
+/// the proof is invalid and false (zero) when valid
 #[no_mangle]
-pub unsafe extern "C" fn batch_dleq_proof_verify(
+pub unsafe extern "C" fn batch_dleq_proof_invalid(
     proof: *const BatchDLEQProof,
     blinded_tokens: *const *const BlindedToken,
     signed_tokens: *const *const SignedToken,
     tokens_length: c_int,
     public_key: *const PublicKey,
-) -> bool {
+) -> c_int {
     if !proof.is_null()
         && !blinded_tokens.is_null()
         && !signed_tokens.is_null()
@@ -566,19 +584,19 @@ pub unsafe extern "C" fn batch_dleq_proof_verify(
         let signed_tokens: Vec<SignedToken> = signed_tokens.iter().map(|p| **p).collect();
 
         match (*proof).verify::<Sha512>(&blinded_tokens, &signed_tokens, &*public_key) {
-            Ok(_) => return true,
+            Ok(_) => return 0,
             Err(err) => {
                 if let Some(InternalError::VerifyError) =
                     err.source().unwrap().downcast_ref::<InternalError>()
                 {
-                    return false;
+                    return 1;
                 } else {
                     update_last_error(err);
-                    return false;
+                    return -1;
                 }
             }
         }
     }
     update_last_error("Pointer to blinded tokens, signed tokens or signing key was null");
-    return false;
+    return -1;
 }
