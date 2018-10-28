@@ -37,9 +37,8 @@ func lastErrorOr(defaultMsg string) error {
 	defer C.c_char_destroy(msg)
 	if msg == nil {
 		return errors.New(defaultMsg)
-	} else {
-		return errors.New(C.GoString(msg))
 	}
+	return errors.New(C.GoString(msg))
 }
 
 // TokenPreimage is a slice of bytes which can be hashed to a `RistrettoPoint`.

@@ -33,15 +33,12 @@ fn update_last_error(err: TokenError) {
 #[no_mangle]
 pub unsafe extern "C" fn last_error_message() -> *mut c_char {
     LAST_ERROR.with(|prev| {
-        let ret = match *prev.borrow_mut() {
-            Some(ref err) => {
-                if let Ok(s) = CString::new(err.to_string()) {
-                    return s.into_raw();
-                }
-                ptr::null_mut()
+        let mut ret = ptr::null_mut();
+        if let Some(ref err) = *prev.borrow_mut() {
+            if let Ok(s) = CString::new(err.to_string()) {
+                ret = s.into_raw();
             }
-            None => ptr::null_mut(),
-        };
+        }
         *prev.borrow_mut() = None;
         ret
     })
