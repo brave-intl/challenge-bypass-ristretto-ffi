@@ -2,16 +2,6 @@ language: rust
 
 matrix:
   include:
-    - name: "Golang Lint"
-      language: go
-      go: "1.11"
-      env:
-        - GO111MODULE=on
-        - GOLANGCI_RELEASE="v1.10.2"
-      before_script:
-        - go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
-      script:
-        - make go-lint
     - name: "Golang Example"
       language: generic
       os: linux

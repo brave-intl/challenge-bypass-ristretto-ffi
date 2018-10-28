@@ -32,7 +32,7 @@ go-docker-test: go-docker
 	docker run -i challenge-bypass-ristretto-ffi-go
 
 go-lint:
-	golangci-lint run -E gofmt -E golint -D megacheck -D typecheck --exclude-use-default=false lib.go
+	golangci-lint run -E gofmt -E golint -D megacheck -D typecheck -D structcheck --exclude-use-default=false lib.go
 	golangci-lint run -E gofmt -E golint --exclude-use-default=false examples/golang/main.go
 
 clean:
