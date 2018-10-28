@@ -341,11 +341,11 @@ func (k *SigningKey) PublicKey() *PublicKey {
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
-	raw_pub := C.signing_key_get_public_key(k.raw)
-	if raw_pub == nil {
+	raw := C.signing_key_get_public_key(k.raw)
+	if raw == nil {
 		panic(wrapLastError("Failed to get public key for signing key"))
 	}
-	pub := &PublicKey{raw: raw_pub}
+	pub := &PublicKey{raw: raw}
 	runtime.SetFinalizer(pub, publicKeyFinalizer)
 	return pub
 }
