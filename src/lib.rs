@@ -1,13 +1,12 @@
 extern crate base64;
 extern crate challenge_bypass_ristretto;
 extern crate core;
-extern crate failure;
 extern crate rand;
 extern crate sha2;
 
 use core::ptr;
-use failure::{err_msg, Error};
 use std::cell::RefCell;
+use std::error::Error;
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int};
 use std::slice;
@@ -26,10 +25,10 @@ thread_local!{
 /// Update the last error that occured.
 fn update_last_error<T>(err: T)
 where
-    T: Into<Error>,
+    T: Into<Box<Error>>,
 {
     LAST_ERROR.with(|prev| {
-        *prev.borrow_mut() = Some(Box::new(err.into()));
+        *prev.borrow_mut() = Some(err.into());
     });
 }
 
@@ -65,7 +64,7 @@ macro_rules! impl_base64 {
                 let b64 = (&*t).encode_base64();
                 return CString::from_vec_unchecked(b64.into()).into_raw();
             }
-            update_last_error(err_msg("Pointer to struct was null"));
+            update_last_error("Pointer to struct was null");
             return ptr::null_mut();
         }
 
@@ -85,7 +84,7 @@ macro_rules! impl_base64 {
                     Err(err) => update_last_error(err),
                 }
             }
-            update_last_error(err_msg("Supplied string was null"));
+            update_last_error("Supplied string was null");
             return ptr::null_mut();
         }
     };
@@ -140,7 +139,7 @@ pub unsafe extern "C" fn token_destroy(token: *mut Token) {
 #[no_mangle]
 pub unsafe extern "C" fn token_blind(token: *const Token) -> *mut BlindedToken {
     if token.is_null() {
-        update_last_error(err_msg("Pointer to token was null"));
+        update_last_error("Pointer to token was null");
         return ptr::null_mut();
     }
 
@@ -157,7 +156,7 @@ pub unsafe extern "C" fn token_unblind(
     signed_token: *const SignedToken,
 ) -> *mut UnblindedToken {
     if token.is_null() || signed_token.is_null() {
-        update_last_error(err_msg("Pointer to token or signed token was null"));
+        update_last_error("Pointer to token or signed token was null");
         return ptr::null_mut();
     }
     match (*token).unblind(&*signed_token) {
@@ -217,7 +216,7 @@ pub unsafe extern "C" fn unblinded_token_derive_verification_key_sha512(
     token: *const UnblindedToken,
 ) -> *mut VerificationKey {
     if token.is_null() {
-        update_last_error(err_msg("Pointer to unblinded token was null"));
+        update_last_error("Pointer to unblinded token was null");
         return ptr::null_mut();
     }
     Box::into_raw(Box::new((*token).derive_verification_key::<Sha512>()))
@@ -232,7 +231,7 @@ pub unsafe extern "C" fn unblinded_token_preimage(
     token: *const UnblindedToken,
 ) -> *mut TokenPreimage {
     if token.is_null() {
-        update_last_error(err_msg("Pointer to token was null"));
+        update_last_error("Pointer to token was null");
         return ptr::null_mut();
     }
 
@@ -264,7 +263,7 @@ pub unsafe extern "C" fn verification_key_sign_sha512(
     message: *const c_char,
 ) -> *mut VerificationSignature {
     if key.is_null() {
-        update_last_error(err_msg("Pointer to verification key was null"));
+        update_last_error("Pointer to verification key was null");
         return ptr::null_mut();
     }
 
@@ -290,7 +289,7 @@ pub unsafe extern "C" fn verification_key_verify_sha512(
     message: *const c_char,
 ) -> bool {
     if key.is_null() || sig.is_null() {
-        update_last_error(err_msg("Pointer to verification key or signature was null"));
+        update_last_error("Pointer to verification key or signature was null");
         return false;
     }
 
@@ -359,7 +358,7 @@ pub unsafe extern "C" fn signing_key_sign(
     token: *const BlindedToken,
 ) -> *mut SignedToken {
     if key.is_null() || token.is_null() {
-        update_last_error(err_msg("Pointer to signing key or token was null"));
+        update_last_error("Pointer to signing key or token was null");
         return ptr::null_mut();
     }
 
@@ -382,7 +381,7 @@ pub unsafe extern "C" fn signing_key_rederive_unblinded_token(
     t: *const TokenPreimage,
 ) -> *mut UnblindedToken {
     if key.is_null() || t.is_null() {
-        update_last_error(err_msg("Pointer to signing key or token preimage was null"));
+        update_last_error("Pointer to signing key or token preimage was null");
         return ptr::null_mut();
     }
 
@@ -396,7 +395,7 @@ pub unsafe extern "C" fn signing_key_rederive_unblinded_token(
 #[no_mangle]
 pub unsafe extern "C" fn signing_key_get_public_key(key: *const SigningKey) -> *mut PublicKey {
     if key.is_null() {
-        update_last_error(err_msg("Pointer to signing key was null"));
+        update_last_error("Pointer to signing key was null");
         return ptr::null_mut();
     }
 
@@ -440,9 +439,7 @@ pub unsafe extern "C" fn dleq_proof_new(
             Err(err) => update_last_error(err),
         }
     }
-    update_last_error(err_msg(
-        "Pointer to blinded token, signed token or signing key was null",
-    ));
+    update_last_error("Pointer to blinded token, signed token or signing key was null");
     return ptr::null_mut();
 }
 
@@ -462,7 +459,9 @@ pub unsafe extern "C" fn dleq_proof_verify(
         match (*proof).verify::<Sha512>(&*blinded_token, &*signed_token, &*public_key) {
             Ok(_) => return true,
             Err(err) => {
-                if let InternalError::VerifyError = err.0 {
+                if let Some(InternalError::VerifyError) =
+                    err.source().unwrap().downcast_ref::<InternalError>()
+                {
                     return false;
                 } else {
                     update_last_error(err);
@@ -471,9 +470,7 @@ pub unsafe extern "C" fn dleq_proof_verify(
             }
         }
     }
-    update_last_error(err_msg(
-        "Pointer to proof, blinded token, signed token or signing key was null",
-    ));
+    update_last_error("Pointer to proof, blinded token, signed token or signing key was null");
     return false;
 }
 
@@ -543,9 +540,7 @@ pub unsafe extern "C" fn batch_dleq_proof_new(
             }
         }
     }
-    update_last_error(err_msg(
-        "Pointer to blinded tokens, signed tokens or signing key was null",
-    ));
+    update_last_error("Pointer to blinded tokens, signed tokens or signing key was null");
     return ptr::null_mut();
 }
 
@@ -573,7 +568,9 @@ pub unsafe extern "C" fn batch_dleq_proof_verify(
         match (*proof).verify::<Sha512>(&blinded_tokens, &signed_tokens, &*public_key) {
             Ok(_) => return true,
             Err(err) => {
-                if let InternalError::VerifyError = err.0 {
+                if let Some(InternalError::VerifyError) =
+                    err.source().unwrap().downcast_ref::<InternalError>()
+                {
                     return false;
                 } else {
                     update_last_error(err);
@@ -582,8 +579,6 @@ pub unsafe extern "C" fn batch_dleq_proof_verify(
             }
         }
     }
-    update_last_error(err_msg(
-        "Pointer to blinded tokens, signed tokens or signing key was null",
-    ));
+    update_last_error("Pointer to blinded tokens, signed tokens or signing key was null");
     return false;
 }
