@@ -11,9 +11,18 @@ namespace challenge_bypass_ristretto {
     if (tmp != nullptr) {
       std::string msg = std::string(tmp);
       c_char_destroy(tmp);
-      return TokenException(msg);
+      return TokenException(default_msg + ":" + msg);
     } else {
       return TokenException(default_msg);
+    }
+  }
+
+  void TokenException::check_last_error(std::string default_msg) {
+    char* tmp = last_error_message();
+    if (tmp != nullptr) {
+      std::string msg = std::string(tmp);
+      c_char_destroy(tmp);
+      throw TokenException(msg);
     }
   }
 }
@@ -138,12 +147,7 @@ namespace challenge_bypass_ristretto {
 // class UnblindedToken
 namespace challenge_bypass_ristretto {
   VerificationKey UnblindedToken::derive_verification_key() {
-    std::shared_ptr<C_VerificationKey> raw_verification_key(unblinded_token_derive_verification_key_sha512(raw.get()), verification_key_destroy);
-    if (raw_verification_key == nullptr) {
-      throw TokenException::last_error("Failed to derive verification key");
-    }
-
-    return VerificationKey(raw_verification_key);
+    return VerificationKey(std::shared_ptr<C_VerificationKey>(unblinded_token_derive_verification_key_sha512(raw.get()), verification_key_destroy));
   }
 
   TokenPreimage UnblindedToken::preimage() {
@@ -171,13 +175,17 @@ namespace challenge_bypass_ristretto {
   VerificationSignature VerificationKey::sign(const std::string message) {
     std::shared_ptr<C_VerificationSignature> raw_verification_signature(verification_key_sign_sha512(raw.get(), message.c_str()), verification_signature_destroy);
     if (raw_verification_signature == nullptr) {
-      throw TokenException::last_error("Failed to sign, is message invalid?");
+      throw TokenException::last_error("Failed to sign message");
     }
     return VerificationSignature(raw_verification_signature);
   }
 
   bool VerificationKey::verify(VerificationSignature sig, const std::string message) {
-    return verification_key_verify_sha512(raw.get(), sig.raw.get(), message.c_str());
+    bool result = verification_key_verify_sha512(raw.get(), sig.raw.get(), message.c_str());
+    if (!result) {
+      TokenException::check_last_error("Failed to verify message signature");
+    }
+    return result;
   }
 }
 
@@ -201,17 +209,11 @@ namespace challenge_bypass_ristretto {
   }
 
   UnblindedToken SigningKey::rederive_unblinded_token(TokenPreimage t) {
-    std::shared_ptr<C_UnblindedToken> raw_unblinded(signing_key_rederive_unblinded_token(raw.get(), t.raw.get()), unblinded_token_destroy);
-    if (raw_unblinded == nullptr) {
-      throw TokenException::last_error("Failed to rederive unblinded token");
-    }
-
-    return UnblindedToken(raw_unblinded);
+    return UnblindedToken(std::shared_ptr<C_UnblindedToken>(signing_key_rederive_unblinded_token(raw.get(), t.raw.get()), unblinded_token_destroy));
   }
 
   PublicKey SigningKey::public_key() {
     return PublicKey(std::shared_ptr<C_PublicKey>(signing_key_get_public_key(raw.get()), public_key_destroy));
-
   }
 
   SigningKey SigningKey::decode_base64(const std::string encoded) { 
@@ -252,10 +254,17 @@ namespace challenge_bypass_ristretto {
 namespace challenge_bypass_ristretto {
   DLEQProof::DLEQProof(BlindedToken blinded_token, SignedToken signed_token, SigningKey key) { 
     raw = std::shared_ptr<C_DLEQProof>(dleq_proof_new(blinded_token.raw.get(), signed_token.raw.get(), key.raw.get()), dleq_proof_destroy);
+    if (raw == nullptr) {
+      throw TokenException::last_error("Failed to create new DLEQ proof");
+    }
   }
 
   bool DLEQProof::verify(BlindedToken blinded_token, SignedToken signed_token, PublicKey key) { 
-    return dleq_proof_verify(raw.get(), blinded_token.raw.get(), signed_token.raw.get(), key.raw.get());
+    bool result = dleq_proof_verify(raw.get(), blinded_token.raw.get(), signed_token.raw.get(), key.raw.get());
+    if (!result) {
+      TokenException::check_last_error("Failed to verify DLEQ proof");
+    }
+    return result;
   }
 
   DLEQProof DLEQProof::decode_base64(const std::string encoded) { 
@@ -306,7 +315,11 @@ namespace challenge_bypass_ristretto {
       raw_signed_tokens.push_back(signed_tokens[i].raw.get());
     }
 
-    return bool(batch_dleq_proof_verify(raw.get(), raw_blinded_tokens.data(), raw_signed_tokens.data(), blinded_tokens.size(), key.raw.get()));
+    bool result = bool(batch_dleq_proof_verify(raw.get(), raw_blinded_tokens.data(), raw_signed_tokens.data(), blinded_tokens.size(), key.raw.get()));
+    if (!result) {
+      TokenException::check_last_error("Failed to verify DLEQ proof");
+    }
+    return result;
   }
 
   BatchDLEQProof BatchDLEQProof::decode_base64(const std::string encoded) { 

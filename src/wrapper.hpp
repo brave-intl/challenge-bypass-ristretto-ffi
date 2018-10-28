@@ -15,6 +15,7 @@ namespace challenge_bypass_ristretto {
   public:
     TokenException(const std::string& msg) : msg(msg){};
     static TokenException last_error(std::string msg);
+    static void check_last_error(std::string msg);
     const char * what () const throw () {
         return msg.c_str();
      }
