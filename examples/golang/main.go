@@ -87,10 +87,7 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	preimage, err := clientUnblindedToken.Preimage()
-	if err != nil {
-		log.Fatalln(err)
-	}
+	preimage := clientUnblindedToken.Preimage()
 	// client sends the token preimage, signature and message to the server
 
 	// server derives the unblinded token using it's key and the clients token preimage

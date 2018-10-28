@@ -5,16 +5,47 @@ extern crate rand;
 extern crate sha2;
 
 use core::ptr;
+use std::cell::RefCell;
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int};
 use std::slice;
 
 use challenge_bypass_ristretto::{
-    BatchDLEQProof, BlindedToken, DLEQProof, PublicKey, SignedToken, SigningKey, Token,
+    BatchDLEQProof, BlindedToken, DLEQProof, PublicKey, SignedToken, SigningKey, Token, TokenError,
     TokenPreimage, UnblindedToken, VerificationKey, VerificationSignature,
 };
 use rand::rngs::OsRng;
 use sha2::Sha512;
+
+// TODO create new error type that includes error variants like null input / invalid c string?
+thread_local!{
+    static LAST_ERROR: RefCell<Option<Box<TokenError>>> = RefCell::new(None);
+}
+
+/// Update the last error that occured.
+fn update_last_error(err: TokenError) {
+    LAST_ERROR.with(|prev| {
+        *prev.borrow_mut() = Some(Box::new(err));
+    });
+}
+
+/// Clear and teturn the message associated with the last error.
+#[no_mangle]
+pub unsafe extern "C" fn last_error_message() -> *mut c_char {
+    LAST_ERROR.with(|prev| {
+        let ret = match *prev.borrow_mut() {
+            Some(ref err) => {
+                if let Ok(s) = CString::new(err.to_string()) {
+                    return s.into_raw();
+                }
+                ptr::null_mut()
+            }
+            None => ptr::null_mut(),
+        };
+        *prev.borrow_mut() = None;
+        ret
+    })
+}
 
 /// Destroy a `*c_char` once you are done with it.
 #[no_mangle]
@@ -47,8 +78,9 @@ macro_rules! impl_base64 {
             if !s.is_null() {
                 let raw = CStr::from_ptr(s);
                 if let Ok(s_as_str) = raw.to_str() {
-                    if let Ok(t) = $t::decode_base64(s_as_str) {
-                        return Box::into_raw(Box::new(t));
+                    match $t::decode_base64(s_as_str) {
+                        Ok(t) => return Box::into_raw(Box::new(t)),
+                        Err(err) => update_last_error(err),
                     }
                 }
             }
@@ -122,7 +154,10 @@ pub unsafe extern "C" fn token_unblind(
     }
     match (*token).unblind(&*signed_token) {
         Ok(unblinded_token) => Box::into_raw(Box::new(unblinded_token)),
-        Err(_) => ptr::null_mut(),
+        Err(err) => {
+            update_last_error(err);
+            ptr::null_mut()
+        }
     }
 }
 
@@ -308,7 +343,10 @@ pub unsafe extern "C" fn signing_key_sign(
 
     match (*key).sign(&*token) {
         Ok(signed_token) => Box::into_raw(Box::new(signed_token)),
-        Err(_) => ptr::null_mut(),
+        Err(err) => {
+            update_last_error(err);
+            ptr::null_mut()
+        }
     }
 }
 
@@ -377,10 +415,9 @@ pub unsafe extern "C" fn dleq_proof_new(
 ) -> *mut DLEQProof {
     if !blinded_token.is_null() && !signed_token.is_null() && !key.is_null() {
         let mut rng = OsRng::new().unwrap();
-        if let Ok(proof) =
-            DLEQProof::new::<Sha512, OsRng>(&mut rng, &*blinded_token, &*signed_token, &*key)
-        {
-            return Box::into_raw(Box::new(proof));
+        match DLEQProof::new::<Sha512, OsRng>(&mut rng, &*blinded_token, &*signed_token, &*key) {
+            Ok(proof) => return Box::into_raw(Box::new(proof)),
+            Err(err) => update_last_error(err),
         }
     }
     return ptr::null_mut();
@@ -455,10 +492,10 @@ pub unsafe extern "C" fn batch_dleq_proof_new(
             slice::from_raw_parts(signed_tokens, tokens_length as usize);
         let signed_tokens: Vec<SignedToken> = signed_tokens.iter().map(|p| **p).collect();
 
-        if let Ok(proof) =
-            BatchDLEQProof::new::<Sha512, OsRng>(&mut rng, &blinded_tokens, &signed_tokens, &*key)
+        match BatchDLEQProof::new::<Sha512, OsRng>(&mut rng, &blinded_tokens, &signed_tokens, &*key)
         {
-            return Box::into_raw(Box::new(proof));
+            Ok(proof) => return Box::into_raw(Box::new(proof)),
+            Err(err) => update_last_error(err),
         }
     }
     return ptr::null_mut();

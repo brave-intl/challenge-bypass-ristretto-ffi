@@ -32,7 +32,7 @@ typedef struct C_DLEQProof C_DLEQProof;
 typedef struct C_PublicKey C_PublicKey;
 
 /*
- * A `SignedToken` is the result of signing an `BlindedToken`.
+ * A `SignedToken` is the result of signing a `BlindedToken`.
  *
  * \\(Q = P^k = (T^r)^k\\)
  */
@@ -177,6 +177,11 @@ bool dleq_proof_verify(const C_DLEQProof *proof,
                        const C_BlindedToken *blinded_token,
                        const C_SignedToken *signed_token,
                        const C_PublicKey *public_key);
+
+/*
+ * Return the message associated with the last error.
+ */
+char *last_error_message(void);
 
 /*
  * Decode base64 C string.
