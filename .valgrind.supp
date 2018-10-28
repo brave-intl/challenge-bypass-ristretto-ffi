@@ -3,3 +3,8 @@
    Memcheck:Addr16
    fun:indexbytebody
 }
+{
+   <indexbytebody>
+   Memcheck:Addr32
+   fun:indexbytebody
+}
