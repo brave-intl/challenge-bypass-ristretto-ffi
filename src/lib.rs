@@ -83,8 +83,9 @@ macro_rules! impl_base64 {
                     },
                     Err(err) => update_last_error(err),
                 }
+            } else {
+                update_last_error("Supplied string was null");
             }
-            update_last_error("Supplied string was null");
             return ptr::null_mut();
         }
     };
