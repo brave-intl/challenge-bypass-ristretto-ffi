@@ -1,6 +1,7 @@
 extern crate base64;
 extern crate challenge_bypass_ristretto;
 extern crate core;
+extern crate hmac;
 extern crate rand;
 extern crate sha2;
 
@@ -15,8 +16,11 @@ use challenge_bypass_ristretto::{
     BatchDLEQProof, BlindedToken, DLEQProof, InternalError, PublicKey, SignedToken, SigningKey,
     Token, TokenPreimage, UnblindedToken, VerificationKey, VerificationSignature,
 };
+use hmac::Hmac;
 use rand::rngs::OsRng;
 use sha2::Sha512;
+
+type HmacSha512 = Hmac<Sha512>;
 
 thread_local!{
     static LAST_ERROR: RefCell<Option<Box<Error>>> = RefCell::new(None);
@@ -277,7 +281,9 @@ pub unsafe extern "C" fn verification_key_sign_sha512(
             return ptr::null_mut();
         }
     };
-    Box::into_raw(Box::new((*key).sign::<Sha512>(message_as_str.as_bytes())))
+    Box::into_raw(Box::new(
+        (*key).sign::<HmacSha512>(message_as_str.as_bytes()),
+    ))
 }
 
 /// Take a reference to a `VerificationKey` and use it to verify an
@@ -307,7 +313,7 @@ pub unsafe extern "C" fn verification_key_invalid_sha512(
             return -1;
         }
     };
-    if (*key).verify::<Sha512>(&*sig, message_as_str.as_bytes()) {
+    if (*key).verify::<HmacSha512>(&*sig, message_as_str.as_bytes()) {
         return 0;
     } else {
         return 1;
