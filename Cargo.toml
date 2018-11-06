@@ -10,6 +10,7 @@ sha2 = "^0.7"
 
 [dependencies.challenge-bypass-ristretto]
 git = "https://github.com/evq/challenge-bypass-ristretto"
+rev = "e8e6a3ae9165919799c86b0fd5aeb80f6e4e4f84"
 features = ["base64"]
 
 [lib]
