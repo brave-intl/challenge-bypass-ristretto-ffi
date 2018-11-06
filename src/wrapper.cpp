@@ -6,6 +6,11 @@ extern "C" {
 
 // class TokenException
 namespace challenge_bypass_ristretto {
+  TokenException::TokenException(const std::string& msg) : msg(msg){}
+  TokenException::~TokenException() {}
+
+  const char* TokenException::what() const throw() { return msg.c_str(); }
+
   TokenException TokenException::last_error(std::string default_msg) {
     char* tmp = last_error_message();
     if (tmp != nullptr) {
@@ -20,6 +25,8 @@ namespace challenge_bypass_ristretto {
 
 // class TokenPreimage
 namespace challenge_bypass_ristretto {
+  TokenPreimage::TokenPreimage(std::shared_ptr<C_TokenPreimage> raw) : raw(raw) {}
+  TokenPreimage::~TokenPreimage() {}
 
   TokenPreimage TokenPreimage::decode_base64(const std::string encoded) { 
     std::shared_ptr<C_TokenPreimage> raw_preimage(token_preimage_decode_base64(encoded.c_str()), token_preimage_destroy);
@@ -39,6 +46,9 @@ namespace challenge_bypass_ristretto {
 
 // class Token
 namespace challenge_bypass_ristretto {
+  Token::Token(std::shared_ptr<C_Token> raw) : raw(raw) {}
+  Token::~Token() {}
+
   Token Token::random() {
     std::shared_ptr<C_Token> raw_token(token_random(), token_destroy);
     if (raw_token == nullptr) {
@@ -83,6 +93,9 @@ namespace challenge_bypass_ristretto {
 
 // class BlindedToken
 namespace challenge_bypass_ristretto {
+  BlindedToken::BlindedToken(std::shared_ptr<C_BlindedToken> raw) : raw(raw) {}
+  BlindedToken::~BlindedToken() { }
+
   BlindedToken BlindedToken::decode_base64(const std::string encoded) { 
     std::shared_ptr<C_BlindedToken> raw_blinded(blinded_token_decode_base64(encoded.c_str()), blinded_token_destroy);
     if (raw_blinded == nullptr) {
@@ -101,6 +114,9 @@ namespace challenge_bypass_ristretto {
 
 // class SignedToken
 namespace challenge_bypass_ristretto {
+  SignedToken::SignedToken(std::shared_ptr<C_SignedToken> raw) : raw(raw) {}
+  SignedToken::~SignedToken() {}
+
   SignedToken SignedToken::decode_base64(const std::string encoded) { 
     std::shared_ptr<C_SignedToken> raw_signed(signed_token_decode_base64(encoded.c_str()), signed_token_destroy);
     if (raw_signed == nullptr) {
@@ -119,6 +135,9 @@ namespace challenge_bypass_ristretto {
 
 // class VerificationSignature
 namespace challenge_bypass_ristretto {
+  VerificationSignature::VerificationSignature(std::shared_ptr<C_VerificationSignature> raw) : raw(raw) {}
+  VerificationSignature::~VerificationSignature() {}
+
   VerificationSignature VerificationSignature::decode_base64(const std::string encoded) { 
     std::shared_ptr<C_VerificationSignature> raw_sig(verification_signature_decode_base64(encoded.c_str()), verification_signature_destroy);
     if (raw_sig == nullptr) {
@@ -137,6 +156,9 @@ namespace challenge_bypass_ristretto {
 
 // class UnblindedToken
 namespace challenge_bypass_ristretto {
+  UnblindedToken::UnblindedToken(std::shared_ptr<C_UnblindedToken> raw) : raw(raw) {}
+  UnblindedToken::~UnblindedToken() {}
+
   VerificationKey UnblindedToken::derive_verification_key() {
     return VerificationKey(std::shared_ptr<C_VerificationKey>(unblinded_token_derive_verification_key_sha512(raw.get()), verification_key_destroy));
   }
@@ -163,6 +185,9 @@ namespace challenge_bypass_ristretto {
 
 // class VerificationKey
 namespace challenge_bypass_ristretto {
+  VerificationKey::VerificationKey(std::shared_ptr<C_VerificationKey> raw) : raw(raw) {}
+  VerificationKey::~VerificationKey() {}
+
   VerificationSignature VerificationKey::sign(const std::string message) {
     std::shared_ptr<C_VerificationSignature> raw_verification_signature(verification_key_sign_sha512(raw.get(), message.c_str()), verification_signature_destroy);
     if (raw_verification_signature == nullptr) {
@@ -182,6 +207,9 @@ namespace challenge_bypass_ristretto {
 
 // class SigningKey
 namespace challenge_bypass_ristretto {
+  SigningKey::SigningKey(std::shared_ptr<C_SigningKey> raw) : raw(raw) {}
+  SigningKey::~SigningKey() {}
+
   SigningKey SigningKey::random() {
     std::shared_ptr<C_SigningKey> raw_key(signing_key_random(), signing_key_destroy);
     if (raw_key == nullptr) {
@@ -225,6 +253,9 @@ namespace challenge_bypass_ristretto {
 
 // class PublicKey
 namespace challenge_bypass_ristretto {
+  PublicKey::PublicKey(std::shared_ptr<C_PublicKey> raw) : raw(raw) {}
+  PublicKey::~PublicKey() {}
+
   PublicKey PublicKey::decode_base64(const std::string encoded) { 
     std::shared_ptr<C_PublicKey> raw_key(public_key_decode_base64(encoded.c_str()), public_key_destroy);
     if (raw_key == nullptr) {
@@ -243,6 +274,9 @@ namespace challenge_bypass_ristretto {
 
 // class DLEQProof
 namespace challenge_bypass_ristretto {
+  DLEQProof::DLEQProof(std::shared_ptr<C_DLEQProof> raw) : raw(raw) {}
+  DLEQProof::~DLEQProof() {}
+
   DLEQProof::DLEQProof(BlindedToken blinded_token, SignedToken signed_token, SigningKey key) { 
     raw = std::shared_ptr<C_DLEQProof>(dleq_proof_new(blinded_token.raw.get(), signed_token.raw.get(), key.raw.get()), dleq_proof_destroy);
     if (raw == nullptr) {
@@ -276,6 +310,9 @@ namespace challenge_bypass_ristretto {
 
 // class BatchDLEQProof
 namespace challenge_bypass_ristretto {
+  BatchDLEQProof::BatchDLEQProof(std::shared_ptr<C_BatchDLEQProof> raw) : raw(raw) {}
+  BatchDLEQProof::~BatchDLEQProof() {}
+
   BatchDLEQProof::BatchDLEQProof(std::vector<BlindedToken> blinded_tokens, std::vector<SignedToken> signed_tokens, SigningKey key) { 
     if (blinded_tokens.size() != signed_tokens.size()) {
       throw TokenException("Blinded tokens and signed tokens must have the same length");
