@@ -13,8 +13,8 @@ namespace challenge_bypass_ristretto {
 class TokenException : std::exception {
  public:
   TokenException(const std::string&);
-  ~TokenException();
-  const char* what() const throw();
+  ~TokenException() override;
+  const char* what() const throw() override;
   static TokenException last_error(std::string msg);
 
  private:
@@ -26,6 +26,7 @@ class TokenPreimage {
 
  public:
   TokenPreimage(std::shared_ptr<C_TokenPreimage>);
+  TokenPreimage(const TokenPreimage&);
   ~TokenPreimage();
   static TokenPreimage decode_base64(const std::string);
   std::string encode_base64();
@@ -41,6 +42,7 @@ class BlindedToken {
 
  public:
   BlindedToken(std::shared_ptr<C_BlindedToken>);
+  BlindedToken(const BlindedToken&);
   ~BlindedToken();
   static BlindedToken decode_base64(const std::string);
   std::string encode_base64();
@@ -56,6 +58,7 @@ class SignedToken {
 
  public:
   SignedToken(std::shared_ptr<C_SignedToken>);
+  SignedToken(const SignedToken&);
   ~SignedToken();
   static SignedToken decode_base64(const std::string);
   std::string encode_base64();
@@ -69,6 +72,7 @@ class VerificationSignature {
 
  public:
   VerificationSignature(std::shared_ptr<C_VerificationSignature>);
+  VerificationSignature(const VerificationSignature&);
   ~VerificationSignature();
   static VerificationSignature decode_base64(const std::string);
   std::string encode_base64();
@@ -80,6 +84,7 @@ class VerificationSignature {
 class VerificationKey {
  public:
   VerificationKey(std::shared_ptr<C_VerificationKey>);
+  VerificationKey(const VerificationKey&);
   ~VerificationKey();
   VerificationSignature sign(const std::string);
   bool verify(VerificationSignature, const std::string);
@@ -91,6 +96,7 @@ class VerificationKey {
 class UnblindedToken {
  public:
   UnblindedToken(std::shared_ptr<C_UnblindedToken>);
+  UnblindedToken(const UnblindedToken&);
   ~UnblindedToken();
   VerificationKey derive_verification_key();
   TokenPreimage preimage();
@@ -104,6 +110,7 @@ class UnblindedToken {
 class Token {
  public:
   Token(std::shared_ptr<C_Token>);
+  Token(const Token&);
   ~Token();
   static Token random();
   BlindedToken blind();
@@ -121,6 +128,7 @@ class PublicKey {
 
  public:
   PublicKey(std::shared_ptr<C_PublicKey>);
+  PublicKey(const PublicKey&);
   ~PublicKey();
   static PublicKey decode_base64(const std::string);
   std::string encode_base64();
@@ -135,6 +143,7 @@ class SigningKey {
 
  public:
   SigningKey(std::shared_ptr<C_SigningKey>);
+  SigningKey(const SigningKey&);
   ~SigningKey();
   static SigningKey random();
   SignedToken sign(BlindedToken);
@@ -150,6 +159,7 @@ class SigningKey {
 class DLEQProof {
  public:
   DLEQProof(std::shared_ptr<C_DLEQProof>);
+  DLEQProof(const DLEQProof&);
   DLEQProof(BlindedToken, SignedToken, SigningKey);
   ~DLEQProof();
   bool verify(BlindedToken, SignedToken, PublicKey);
@@ -163,6 +173,7 @@ class DLEQProof {
 class BatchDLEQProof {
  public:
   BatchDLEQProof(std::shared_ptr<C_BatchDLEQProof>);
+  BatchDLEQProof(const BatchDLEQProof&);
   BatchDLEQProof(std::vector<BlindedToken>,
                  std::vector<SignedToken>,
                  SigningKey);

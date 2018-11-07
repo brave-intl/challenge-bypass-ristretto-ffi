@@ -26,6 +26,7 @@ namespace challenge_bypass_ristretto {
 // class TokenPreimage
 namespace challenge_bypass_ristretto {
   TokenPreimage::TokenPreimage(std::shared_ptr<C_TokenPreimage> raw) : raw(raw) {}
+  TokenPreimage::TokenPreimage(const TokenPreimage& other) = default;
   TokenPreimage::~TokenPreimage() {}
 
   TokenPreimage TokenPreimage::decode_base64(const std::string encoded) { 
@@ -47,6 +48,7 @@ namespace challenge_bypass_ristretto {
 // class Token
 namespace challenge_bypass_ristretto {
   Token::Token(std::shared_ptr<C_Token> raw) : raw(raw) {}
+  Token::Token(const Token& other) = default;
   Token::~Token() {}
 
   Token Token::random() {
@@ -94,6 +96,7 @@ namespace challenge_bypass_ristretto {
 // class BlindedToken
 namespace challenge_bypass_ristretto {
   BlindedToken::BlindedToken(std::shared_ptr<C_BlindedToken> raw) : raw(raw) {}
+  BlindedToken::BlindedToken(const BlindedToken& other) = default;
   BlindedToken::~BlindedToken() { }
 
   BlindedToken BlindedToken::decode_base64(const std::string encoded) { 
@@ -115,6 +118,7 @@ namespace challenge_bypass_ristretto {
 // class SignedToken
 namespace challenge_bypass_ristretto {
   SignedToken::SignedToken(std::shared_ptr<C_SignedToken> raw) : raw(raw) {}
+  SignedToken::SignedToken(const SignedToken& other) = default;
   SignedToken::~SignedToken() {}
 
   SignedToken SignedToken::decode_base64(const std::string encoded) { 
@@ -136,6 +140,7 @@ namespace challenge_bypass_ristretto {
 // class VerificationSignature
 namespace challenge_bypass_ristretto {
   VerificationSignature::VerificationSignature(std::shared_ptr<C_VerificationSignature> raw) : raw(raw) {}
+  VerificationSignature::VerificationSignature(const VerificationSignature& other) = default;
   VerificationSignature::~VerificationSignature() {}
 
   VerificationSignature VerificationSignature::decode_base64(const std::string encoded) { 
@@ -157,6 +162,7 @@ namespace challenge_bypass_ristretto {
 // class UnblindedToken
 namespace challenge_bypass_ristretto {
   UnblindedToken::UnblindedToken(std::shared_ptr<C_UnblindedToken> raw) : raw(raw) {}
+  UnblindedToken::UnblindedToken(const UnblindedToken& other) = default;
   UnblindedToken::~UnblindedToken() {}
 
   VerificationKey UnblindedToken::derive_verification_key() {
@@ -186,6 +192,7 @@ namespace challenge_bypass_ristretto {
 // class VerificationKey
 namespace challenge_bypass_ristretto {
   VerificationKey::VerificationKey(std::shared_ptr<C_VerificationKey> raw) : raw(raw) {}
+  VerificationKey::VerificationKey(const VerificationKey& other) = default;
   VerificationKey::~VerificationKey() {}
 
   VerificationSignature VerificationKey::sign(const std::string message) {
@@ -208,6 +215,7 @@ namespace challenge_bypass_ristretto {
 // class SigningKey
 namespace challenge_bypass_ristretto {
   SigningKey::SigningKey(std::shared_ptr<C_SigningKey> raw) : raw(raw) {}
+  SigningKey::SigningKey(const SigningKey& other) = default;
   SigningKey::~SigningKey() {}
 
   SigningKey SigningKey::random() {
@@ -254,6 +262,7 @@ namespace challenge_bypass_ristretto {
 // class PublicKey
 namespace challenge_bypass_ristretto {
   PublicKey::PublicKey(std::shared_ptr<C_PublicKey> raw) : raw(raw) {}
+  PublicKey::PublicKey(const PublicKey& other) = default;
   PublicKey::~PublicKey() {}
 
   PublicKey PublicKey::decode_base64(const std::string encoded) { 
@@ -275,6 +284,7 @@ namespace challenge_bypass_ristretto {
 // class DLEQProof
 namespace challenge_bypass_ristretto {
   DLEQProof::DLEQProof(std::shared_ptr<C_DLEQProof> raw) : raw(raw) {}
+  DLEQProof::DLEQProof(const DLEQProof& other) = default;
   DLEQProof::~DLEQProof() {}
 
   DLEQProof::DLEQProof(BlindedToken blinded_token, SignedToken signed_token, SigningKey key) { 
@@ -311,6 +321,7 @@ namespace challenge_bypass_ristretto {
 // class BatchDLEQProof
 namespace challenge_bypass_ristretto {
   BatchDLEQProof::BatchDLEQProof(std::shared_ptr<C_BatchDLEQProof> raw) : raw(raw) {}
+  BatchDLEQProof::BatchDLEQProof(const BatchDLEQProof& other) = default;
   BatchDLEQProof::~BatchDLEQProof() {}
 
   BatchDLEQProof::BatchDLEQProof(std::vector<BlindedToken> blinded_tokens, std::vector<SignedToken> signed_tokens, SigningKey key) { 
