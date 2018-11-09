@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"time"
 
-	crypto "github.com/evq/challenge-bypass-ristretto-ffi"
+	crypto "github.com/brave-intl/challenge-bypass-ristretto-ffi"
 )
 
 func main() {
