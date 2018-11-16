@@ -108,5 +108,13 @@ int main() {
     return 1;
   }
 
+#if defined(CXXEXCEPTIONS) && CXXEXCEPTIONS == 0
+  TokenPreimage test = TokenPreimage::decode_base64("asdf");
+  if (exception_occurred()) {
+    TokenException e = get_last_exception();
+    cerr<<e.what()<<"\n";
+  }
+#endif
+
   return 0;
 }
