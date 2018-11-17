@@ -6,8 +6,20 @@ extern "C" {
 
 #include <thread>
 
+#ifndef DCHECK_IS_ON
+#ifdef NDEBUG
+#define DCHECK_IS_ON() 1
+#else
+#define DCHECK_IS_ON() 0
+#endif
+#endif
+
 #ifndef DCHECK
+#if DCHECK_IS_ON()
+#define DCHECK(expr) if (!expr) { std::abort(); }
+#else
 #define DCHECK(expr) ((void)0)
+#endif
 #endif
 
 #if defined(CXXEXCEPTIONS) && CXXEXCEPTIONS == 0

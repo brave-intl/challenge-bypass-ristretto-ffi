@@ -22,7 +22,19 @@ matrix:
         - cargo build
         - make examples/cpp.out
         - valgrind --leak-check=yes --error-exitcode=1 ./examples/cpp.out
-    - name: "Linux Build and C++ Example - No Exceptions"
+    - name: "Linux Build and C++ Example - CXXEXCEPTIONS=0"
+      os: linux
+      rust: nightly
+      env:
+        - CXXEXCEPTIONS=0
+      before_script:
+        - sudo apt-get update
+        - DEBIAN_FRONTEND=noninteractive sudo apt-get install -y valgrind
+      script:
+        - cargo build
+        - make examples/cpp.out
+        - valgrind --leak-check=yes --error-exitcode=1 ./examples/cpp.out
+    - name: "Linux Build and C++ Example - CXXEXCEPTIONS=0 NDEBUG=1"
       os: linux
       rust: nightly
       env:
