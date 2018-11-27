@@ -16,7 +16,7 @@ class TokenException : std::exception {
   ~TokenException() override;
   const char* what() const throw() override;
   static TokenException last_error(std::string msg);
-#if defined(CXXEXCEPTIONS) && CXXEXCEPTIONS == 0
+#ifdef NO_CXXEXCEPTIONS
   static TokenException none();
   bool is_empty();
 #endif
@@ -25,7 +25,7 @@ class TokenException : std::exception {
   std::string msg;
 };
 
-#if defined(CXXEXCEPTIONS) && CXXEXCEPTIONS == 0
+#ifdef NO_CXXEXCEPTIONS
 bool exception_occurred();
 TokenException get_last_exception();
 #endif

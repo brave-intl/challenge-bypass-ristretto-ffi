@@ -22,7 +22,7 @@ extern "C" {
 #endif
 #endif
 
-#if defined(CXXEXCEPTIONS) && CXXEXCEPTIONS == 0
+#ifdef NO_CXXEXCEPTIONS
 #define THROW(expr) (last_exception = expr);
 #define CLEAR_LAST_EXCEPTION(expr) do { DCHECK(!exception_occurred()); last_exception = TokenException::none(); } while (0);
 #else
@@ -48,7 +48,7 @@ namespace challenge_bypass_ristretto {
     }
   }
 
-#if defined(CXXEXCEPTIONS) && CXXEXCEPTIONS == 0
+#ifdef NO_CXXEXCEPTIONS
   TokenException TokenException::none() { return TokenException(""); }
   bool TokenException::is_empty() { return msg.empty() ; }
 

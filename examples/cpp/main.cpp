@@ -5,7 +5,7 @@ using namespace std;
 using namespace challenge_bypass_ristretto;
 
 void check_exception() {
-#if defined(CXXEXCEPTIONS) && CXXEXCEPTIONS == 0
+#ifdef NO_CXXEXCEPTIONS
   if (exception_occurred()) {
     TokenException e = get_last_exception();
     cerr<<e.what()<<"\n";
@@ -162,7 +162,7 @@ int main() {
   }
   check_exception();
 
-#if defined(CXXEXCEPTIONS) && CXXEXCEPTIONS == 0
+#ifdef NO_CXXEXCEPTIONS
   TokenPreimage test = TokenPreimage::decode_base64("asdf");
   if (exception_occurred()) {
     TokenException e = get_last_exception();
