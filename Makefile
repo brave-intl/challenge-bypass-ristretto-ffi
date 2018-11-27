@@ -5,6 +5,14 @@ ifeq (darwin,$(OS))
 CFLAGS += -framework Security
 endif
 
+ifdef NDEBUG
+CFLAGS += -DNDEBUG=${NDEBUG}
+endif
+
+ifdef NO_CXXEXCEPTIONS
+CFLAGS += -DNO_CXXEXCEPTIONS=${NO_CXXEXCEPTIONS}
+endif
+
 all: examples/cpp.out
 
 examples/cpp.out: target/debug/libchallenge_bypass_ristretto.a examples/wrapper.o examples/cpp/main.cpp 
