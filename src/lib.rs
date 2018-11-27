@@ -22,7 +22,7 @@ use sha2::Sha512;
 
 type HmacSha512 = Hmac<Sha512>;
 
-thread_local!{
+thread_local! {
     static LAST_ERROR: RefCell<Option<Box<Error>>> = RefCell::new(None);
 }
 
@@ -314,9 +314,9 @@ pub unsafe extern "C" fn verification_key_invalid_sha512(
         }
     };
     if (*key).verify::<HmacSha512>(&*sig, message_as_str.as_bytes()) {
-        return 0;
+        0
     } else {
-        return 1;
+        1
     }
 }
 
@@ -414,7 +414,7 @@ pub unsafe extern "C" fn signing_key_get_public_key(key: *const SigningKey) -> *
         return ptr::null_mut();
     }
 
-    Box::into_raw(Box::new((*key).public_key.clone()))
+    Box::into_raw(Box::new((*key).public_key))
 }
 
 impl_base64!(
@@ -455,7 +455,7 @@ pub unsafe extern "C" fn dleq_proof_new(
         }
     }
     update_last_error("Pointer to blinded token, signed token or signing key was null");
-    return ptr::null_mut();
+    ptr::null_mut()
 }
 
 /// Check if a DLEQ proof is invalid
@@ -491,7 +491,7 @@ pub unsafe extern "C" fn dleq_proof_invalid(
         }
     }
     update_last_error("Pointer to proof, blinded token, signed token or signing key was null");
-    return -1;
+    -1
 }
 
 /// Destroy a `PublicKey` once you are done with it.
@@ -561,7 +561,7 @@ pub unsafe extern "C" fn batch_dleq_proof_new(
         }
     }
     update_last_error("Pointer to blinded tokens, signed tokens or signing key was null");
-    return ptr::null_mut();
+    ptr::null_mut()
 }
 
 /// Check if a batch DLEQ proof is invalid
@@ -605,5 +605,5 @@ pub unsafe extern "C" fn batch_dleq_proof_invalid(
         }
     }
     update_last_error("Pointer to blinded tokens, signed tokens or signing key was null");
-    return -1;
+    -1
 }
