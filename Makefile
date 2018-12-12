@@ -5,14 +5,6 @@ ifeq (darwin,$(OS))
 CFLAGS += -framework Security
 endif
 
-ifdef NDEBUG
-CFLAGS += -DNDEBUG=${NDEBUG}
-endif
-
-ifdef NO_CXXEXCEPTIONS
-CFLAGS += -DNO_CXXEXCEPTIONS=${NO_CXXEXCEPTIONS}
-endif
-
 all: examples/cpp.out
 
 examples/cpp.out: target/debug/libchallenge_bypass_ristretto.a examples/cpp/main.cpp 
@@ -28,7 +20,7 @@ examples/golang.dyn.out: target/x86_64-unknown-linux-musl/debug/libchallenge_byp
 	go build -o examples/golang.dyn.out examples/golang/main.go
 
 target/x86_64-unknown-linux-musl/debug/libchallenge_bypass_ristretto.a: src/lib.rs Cargo.toml
-	cargo build --target=x86_64-unknown-linux-musl
+	cargo build --no-default-features --target=x86_64-unknown-linux-musl
 
 go-docker:
 	docker build -f examples/golang/Dockerfile -t challenge-bypass-ristretto-ffi-go .

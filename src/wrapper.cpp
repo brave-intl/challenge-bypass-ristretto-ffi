@@ -407,7 +407,7 @@ namespace challenge_bypass_ristretto {
     std::vector<C_BlindedToken*> raw_blinded_tokens;
     std::vector<C_SignedToken*> raw_signed_tokens;
 
-    for (int i = 0; i < blinded_tokens.size(); i++) {
+    for (size_t i = 0; i < blinded_tokens.size(); i++) {
       raw_blinded_tokens.push_back(blinded_tokens[i].raw.get());
       raw_signed_tokens.push_back(signed_tokens[i].raw.get());
     }
@@ -427,7 +427,7 @@ namespace challenge_bypass_ristretto {
     std::vector<C_BlindedToken*> raw_blinded_tokens;
     std::vector<C_SignedToken*> raw_signed_tokens;
 
-    for (int i = 0; i < blinded_tokens.size(); i++) {
+    for (size_t i = 0; i < blinded_tokens.size(); i++) {
       raw_blinded_tokens.push_back(blinded_tokens[i].raw.get());
       raw_signed_tokens.push_back(signed_tokens[i].raw.get());
     }
