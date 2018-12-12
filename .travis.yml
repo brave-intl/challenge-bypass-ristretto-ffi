@@ -17,7 +17,7 @@ matrix:
         - rustup component add rustfmt
         - rustup component add clippy
       script:
-        - cargo fmt --no-default-features -- --check
+        - cargo fmt -- --check
         - cargo clippy --no-default-features
     - name: "Linux Build and C++ Example"
       os: linux
