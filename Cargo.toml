@@ -20,3 +20,9 @@ crate-type = [
     "staticlib",
 ]
 name = "challenge_bypass_ristretto"
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
