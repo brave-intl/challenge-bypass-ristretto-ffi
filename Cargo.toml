@@ -6,12 +6,12 @@ version = "0.1.0"
 [dependencies]
 base64 = "0.9.3"
 hmac = "0.7"
-rand = "0.5"
+rand = "0.6.0"
 sha2 = "0.8"
 
 [dependencies.challenge-bypass-ristretto]
 git = "https://github.com/evq/challenge-bypass-ristretto"
-rev = "96114515d4197817b3b4e1f4cce1b99c212e27ff"
+rev = "fe27989401bc7757699235a886bb4dadfba7baae"
 features = ["base64"]
 
 [lib]
