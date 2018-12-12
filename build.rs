@@ -18,11 +18,11 @@ fn main() {
     .flag("-std=c++11");
 
     if let Ok(ndebug) = ndebug {
-        cc_build.flag(&("-NDEBUG=".to_owned() + &ndebug));
+        cc_build.flag(&("-DNDEBUG=".to_owned() + &ndebug));
     }
 
     if let Ok(no_cxxexceptions) = no_cxxexceptions {
-        cc_build.flag(&("-NNO_CXXEXCEPTIONS=".to_owned() + &no_cxxexceptions));
+        cc_build.flag(&("-DNO_CXXEXCEPTIONS=".to_owned() + &no_cxxexceptions));
     }
 
     cc_build
