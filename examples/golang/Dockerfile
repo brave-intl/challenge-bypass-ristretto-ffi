@@ -3,7 +3,7 @@ RUN rustup target add x86_64-unknown-linux-musl
 RUN apt-get update && apt-get install -y musl-tools
 COPY . /src
 WORKDIR /src
-RUN cargo build --target=x86_64-unknown-linux-musl 
+RUN cargo build --no-default-features --target=x86_64-unknown-linux-musl 
 
 FROM golang:1.11 as go_builder
 RUN apt-get update && apt-get install -y valgrind
