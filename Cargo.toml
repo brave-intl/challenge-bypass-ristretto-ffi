@@ -10,7 +10,7 @@ rand = "0.6.0"
 sha2 = "0.8"
 
 [dependencies.challenge-bypass-ristretto]
-git = "https://github.com/evq/challenge-bypass-ristretto"
+git = "https://github.com/brave-intl/challenge-bypass-ristretto"
 rev = "fe27989401bc7757699235a886bb4dadfba7baae"
 features = ["base64"]
 
