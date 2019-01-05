@@ -1,6 +1,6 @@
 # challenge-bypass-ristretto-ffi [![Build Status](https://travis-ci.org/brave-intl/challenge-bypass-ristretto-ffi.svg?branch=master)](https://travis-ci.org/brave-intl/challenge-bypass-ristretto-ffi)
 
-**A FFI crate, C++ and Golang wrappers to expose functionality from [challenge-bypass-ristretto](https://github.com/evq/challenge-bypass-ristretto)**
+**A FFI crate, C++ and Golang wrappers to expose functionality from [challenge-bypass-ristretto](https://github.com/brave-intl/challenge-bypass-ristretto)**
 
 The `challenge-bypass-ristretto` crate implements a form of blinded tokens using a VOPRF protocol in rust. This
 crate exposes C FFI functions and is configured to produce a static library so that the functionality
