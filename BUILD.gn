@@ -8,49 +8,43 @@ challenge_bypass_build_path = "$root_gen_dir/challenge_bypass_ristretto/out"
 
 challenge_bypass_lib_path = challenge_bypass_build_path
 
-challenge_bypass_platform = ""
+challenge_bypass_target = ""
 
-# See https://forge.rust-lang.org/platform-support.html for platform support
+# See https://forge.rust-lang.org/platform-support.html for possible targets
 if (is_win) {
   if (target_cpu == "x86") {
-    challenge_bypass_lib_path += "/i686-pc-windows-msvc"
-    challenge_bypass_platform = "Windows x86"
+    challenge_bypass_target = "i686-pc-windows-msvc"
   } else if (target_cpu == "x64") {
-    challenge_bypass_lib_path += "/x86_64-pc-windows-msvc"
-    challenge_bypass_platform = "Windows x64"
+    challenge_bypass_target = "x86_64-pc-windows-msvc"
   }
 } else if (is_mac) {
   if (target_cpu == "x64") {
-    challenge_bypass_lib_path += "/x86_64-apple-darwin"
-    challenge_bypass_platform = "macOS x64"
+    challenge_bypass_target = "x86_64-apple-darwin"
   }
 } else if (is_linux) {
   if (target_cpu == "x64") {
-    challenge_bypass_lib_path += "/x86_64-unknown-linux-gnu"
-    challenge_bypass_platform = "Linux x64"
+    challenge_bypass_target = "x86_64-unknown-linux-gnu"
   }
 } else if (is_android) {
   if (target_cpu == "arm") {
-    challenge_bypass_lib_path += "/arm-linux-androideabi"
-    challenge_bypass_platform = "Android arm"
+    challenge_bypass_target = "arm-linux-androideabi"
   } else if (target_cpu == "arm64") {
-    challenge_bypass_lib_path += "/aarch64-linux-android"
-    challenge_bypass_platform = "Android arm64"
+    challenge_bypass_target = "aarch64-linux-android"
   } else if (target_cpu == "x86") {
-    challenge_bypass_lib_path += "/i686-linux-android"
-    challenge_bypass_platform = "Android x86"
+    challenge_bypass_target = "i686-linux-android"
   } else if (target_cpu == "x64") {
-    challenge_bypass_lib_path += "/x86_64-linux-android"
-    challenge_bypass_platform = "Android x64"
+    challenge_bypass_target = "x86_64-linux-android"
   }
 } else if (is_ios) {
   if (target_cpu == "arm64") {
-    challenge_bypass_lib_path += "/aarch64-apple-ios"
+    challenge_bypass_target = "aarch64-apple-ios"
   } else if (target_cpu == "x64") {
-    challenge_bypass_lib_path += "/x86_64-apple-ios"
+    challenge_bypass_target = "x86_64-apple-ios"
   }
+}
 
-  challenge_bypass_platform = "iOS"
+if (challenge_bypass_target != "") {
+  challenge_bypass_lib_path += "/" + challenge_bypass_target
 }
 
 if (is_debug) {
@@ -87,6 +81,6 @@ cargo_build("challenge_bypass_ristretto_ffi") {
   manifest_path = "Cargo.toml"
 
   build_path = challenge_bypass_build_path
-  
-  platform = challenge_bypass_platform
+
+  target = challenge_bypass_target
 }
