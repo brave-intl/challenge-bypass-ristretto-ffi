@@ -8,16 +8,43 @@ challenge_bypass_build_path = "$root_gen_dir/challenge_bypass_ristretto/out"
 
 challenge_bypass_lib_path = challenge_bypass_build_path
 
+challenge_bypass_target = ""
+
+# See https://forge.rust-lang.org/platform-support.html for possible targets
 if (is_win) {
-  challenge_bypass_lib_path += "/x86_64-pc-windows-msvc"
+  if (target_cpu == "x86") {
+    challenge_bypass_target = "i686-pc-windows-msvc"
+  } else if (target_cpu == "x64") {
+    challenge_bypass_target = "x86_64-pc-windows-msvc"
+  }
 } else if (is_mac) {
-  challenge_bypass_lib_path += "/x86_64-apple-darwin"
+  if (target_cpu == "x64") {
+    challenge_bypass_target = "x86_64-apple-darwin"
+  }
 } else if (is_linux) {
-  challenge_bypass_lib_path += "/x86_64-unknown-linux-musl"
+  if (target_cpu == "x64") {
+    challenge_bypass_target = "x86_64-unknown-linux-gnu"
+  }
 } else if (is_android) {
-  challenge_bypass_lib_path += "/x86_64-linux-android"
+  if (target_cpu == "arm") {
+    challenge_bypass_target = "arm-linux-androideabi"
+  } else if (target_cpu == "arm64") {
+    challenge_bypass_target = "aarch64-linux-android"
+  } else if (target_cpu == "x86") {
+    challenge_bypass_target = "i686-linux-android"
+  } else if (target_cpu == "x64") {
+    challenge_bypass_target = "x86_64-linux-android"
+  }
 } else if (is_ios) {
-  challenge_bypass_lib_path += "/x86_64-apple-ios"
+  if (target_cpu == "arm64") {
+    challenge_bypass_target = "aarch64-apple-ios"
+  } else if (target_cpu == "x64") {
+    challenge_bypass_target = "x86_64-apple-ios"
+  }
+}
+
+if (challenge_bypass_target != "") {
+  challenge_bypass_lib_path += "/" + challenge_bypass_target
 }
 
 if (is_debug) {
@@ -27,14 +54,8 @@ if (is_debug) {
 }
 
 if (is_win) {
-  challenge_bypass_lib_path += "/libchallenge_bypass_ristretto.lib"
-} else if (is_mac) {
-  challenge_bypass_lib_path += "/libchallenge_bypass_ristretto.a"
-} else if (is_linux) {
-  challenge_bypass_lib_path += "/libchallenge_bypass_ristretto.a"
-} else if (is_android) {
-  challenge_bypass_lib_path += "/libchallenge_bypass_ristretto.a"
-} else if (is_ios) {
+  challenge_bypass_lib_path += "/challenge_bypass_ristretto.lib"
+} else if (is_mac || is_ios || is_linux || is_android) {
   challenge_bypass_lib_path += "/libchallenge_bypass_ristretto.a"
 }
 
@@ -43,23 +64,8 @@ config("external_config") {
   libs = [ challenge_bypass_lib_path ]
 }
 
-challenge_bypass_platform = ""
-if (is_win) {
-  challenge_bypass_platform = "Windows"
-} else if (is_mac) {
-  challenge_bypass_platform = "macOS"
-} else if (is_linux) {
-  challenge_bypass_platform = "Linux"
-} else if (is_android) {
-  challenge_bypass_platform = "Android"
-} else if (is_ios) {
-  challenge_bypass_platform = "iOS"
-}
-
 cargo_build("challenge_bypass_ristretto_ffi") {
   public_configs = [ ":external_config" ]
-
-  manifest_path = "Cargo.toml"
 
   inputs = [
     "build.rs",
@@ -72,7 +78,9 @@ cargo_build("challenge_bypass_ristretto_ffi") {
 
   output = challenge_bypass_lib_path
 
+  manifest_path = "Cargo.toml"
+
   build_path = challenge_bypass_build_path
-  
-  platform = challenge_bypass_platform
+
+  target = challenge_bypass_target
 }
