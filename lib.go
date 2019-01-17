@@ -120,20 +120,6 @@ func (t *Token) Blind() *BlindedToken {
 	return tok
 }
 
-// Unblind a SignedToken` using the blinding factor of the original Token
-func (t *Token) Unblind(st *SignedToken) (*UnblindedToken, error) {
-	runtime.LockOSThread()
-	defer runtime.UnlockOSThread()
-
-	raw := C.token_unblind(t.raw, st.raw)
-	if raw == nil {
-		return nil, wrapLastError("Failed to unblind token")
-	}
-	tok := &UnblindedToken{raw: raw}
-	runtime.SetFinalizer(tok, unblindedTokenFinalizer)
-	return tok, nil
-}
-
 // MarshalText marshalls the token into text.
 func (t *Token) MarshalText() ([]byte, error) {
 	runtime.LockOSThread()
