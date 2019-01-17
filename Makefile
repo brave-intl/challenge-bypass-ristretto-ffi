@@ -7,7 +7,10 @@ endif
 
 all: examples/cpp.out
 
-examples/cpp.out: target/debug/libchallenge_bypass_ristretto.a examples/cpp/main.cpp 
+src/lib.h: src/lib.rs
+	cbindgen -o src/lib.h
+
+examples/cpp.out: target/debug/libchallenge_bypass_ristretto.a examples/cpp/main.cpp src/lib.h
 	g++ $(CFLAGS) -std=gnu++0x examples/cpp/main.cpp ./target/debug/libchallenge_bypass_ristretto.a -I ./src -lpthread -ldl -o examples/cpp.out
 
 target/debug/libchallenge_bypass_ristretto.a: src/lib.rs Cargo.toml
