@@ -11,7 +11,7 @@ sha2 = "0.8"
 
 [dependencies.challenge-bypass-ristretto]
 git = "https://github.com/brave-intl/challenge-bypass-ristretto"
-rev = "fe27989401bc7757699235a886bb4dadfba7baae"
+rev = "020b67a1af94e5b9d92741a16df512954f518fe0"
 features = ["base64"]
 
 [build-dependencies]

@@ -115,16 +115,6 @@ namespace challenge_bypass_ristretto {
     return BlindedToken(raw_blinded);
   }
 
-  UnblindedToken Token::unblind(SignedToken tok) {
-    CLEAR_LAST_EXCEPTION();
-    std::shared_ptr<C_UnblindedToken> raw_unblinded(token_unblind(raw.get(), tok.raw.get()), unblinded_token_destroy);
-    if (raw_unblinded == nullptr) {
-      THROW(TokenException::last_error("Failed to unblind"));
-    }
-
-    return UnblindedToken(raw_unblinded);
-  }
-
   Token Token::decode_base64(const std::string encoded) { 
     CLEAR_LAST_EXCEPTION();
     std::shared_ptr<C_Token> raw_tok(token_decode_base64(encoded.c_str()), token_destroy);
@@ -437,6 +427,46 @@ namespace challenge_bypass_ristretto {
       THROW(TokenException::last_error("Failed to verify DLEQ proof"));
     }
     return result == 0;
+  }
+
+  std::vector<UnblindedToken> BatchDLEQProof::verify_and_unblind(std::vector<Token> tokens, std::vector<BlindedToken> blinded_tokens, std::vector<SignedToken> signed_tokens, PublicKey public_key) {
+    CLEAR_LAST_EXCEPTION();
+
+    std::vector<UnblindedToken> unblinded_tokens;
+
+    if (tokens.size() != blinded_tokens.size() || tokens.size() != signed_tokens.size()) {
+      THROW(TokenException("Tokens, blinded tokens and signed tokens must have the same length"));
+      return unblinded_tokens;
+    }
+    std::vector<C_Token*> raw_tokens;
+    std::vector<C_BlindedToken*> raw_blinded_tokens;
+    std::vector<C_SignedToken*> raw_signed_tokens;
+    std::vector<C_UnblindedToken*> raw_unblinded_tokens(tokens.size());
+
+    for (size_t i = 0; i < tokens.size(); i++) {
+      raw_tokens.push_back(tokens[i].raw.get());
+      raw_blinded_tokens.push_back(blinded_tokens[i].raw.get());
+      raw_signed_tokens.push_back(signed_tokens[i].raw.get());
+    }
+
+    int result = invalid_or_unblind(raw.get(), raw_tokens.data(), raw_blinded_tokens.data(), raw_signed_tokens.data(), raw_unblinded_tokens.data(), tokens.size(), public_key.raw.get());
+    if (result < 0) {
+      THROW(TokenException::last_error("Failed to verify DLEQ proof"));
+      return unblinded_tokens;
+    }
+
+    for (size_t i = 0; i < tokens.size(); i++) {
+      std::shared_ptr<C_UnblindedToken> raw_unblinded(raw_unblinded_tokens.at(i), unblinded_token_destroy);
+
+      if (raw_unblinded == nullptr) {
+        THROW(TokenException::last_error("Unexpected failure to unblind"));
+        return unblinded_tokens;
+      }
+
+      unblinded_tokens.push_back(UnblindedToken(raw_unblinded));
+    }
+
+    return unblinded_tokens;
   }
 
   BatchDLEQProof BatchDLEQProof::decode_base64(const std::string encoded) { 

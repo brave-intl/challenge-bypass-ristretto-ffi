@@ -12,9 +12,10 @@ use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int};
 use std::slice;
 
-use challenge_bypass_ristretto::{
-    BatchDLEQProof, BlindedToken, DLEQProof, InternalError, PublicKey, SignedToken, SigningKey,
-    Token, TokenPreimage, UnblindedToken, VerificationKey, VerificationSignature,
+use challenge_bypass_ristretto::errors::InternalError;
+use challenge_bypass_ristretto::voprf::{
+    BatchDLEQProof, BlindedToken, DLEQProof, PublicKey, SignedToken, SigningKey, Token,
+    TokenPreimage, UnblindedToken, VerificationKey, VerificationSignature,
 };
 use hmac::Hmac;
 use rand::rngs::OsRng;
@@ -119,7 +120,7 @@ impl_base64!(
 pub unsafe extern "C" fn token_random() -> *mut Token {
     match OsRng::new() {
         Ok(mut rng) => {
-            let token = Token::random(&mut rng);
+            let token = Token::random::<Sha512, OsRng>(&mut rng);
             Box::into_raw(Box::new(token))
         }
         Err(err) => {
@@ -149,28 +150,6 @@ pub unsafe extern "C" fn token_blind(token: *const Token) -> *mut BlindedToken {
     }
 
     Box::into_raw(Box::new((*token).blind()))
-}
-
-/// Take a reference to a `Token` and use it to unblind a `SignedToken`, returning an `UnblindedToken`
-///
-/// If something goes wrong, this will return a null pointer. Don't forget to
-/// destroy the `UnblindedToken` once you are done with it!
-#[no_mangle]
-pub unsafe extern "C" fn token_unblind(
-    token: *const Token,
-    signed_token: *const SignedToken,
-) -> *mut UnblindedToken {
-    if token.is_null() || signed_token.is_null() {
-        update_last_error("Pointer to token or signed token was null");
-        return ptr::null_mut();
-    }
-    match (*token).unblind(&*signed_token) {
-        Ok(unblinded_token) => Box::into_raw(Box::new(unblinded_token)),
-        Err(err) => {
-            update_last_error(err);
-            ptr::null_mut()
-        }
-    }
 }
 
 impl_base64!(Token, token_encode_base64, token_decode_base64);
@@ -605,5 +584,72 @@ pub unsafe extern "C" fn batch_dleq_proof_invalid(
         }
     }
     update_last_error("Pointer to blinded tokens, signed tokens or signing key was null");
+    -1
+}
+
+/// Check if a batch DLEQ proof is invalid and unblind each signed token if not
+///
+/// Returns -1 if an error was encountered, 1 if the proof failed verification and 0 if valid
+///
+/// NOTE this is named "invalid" instead of "verify" as it returns true (non-zero) when
+/// the proof is invalid and false (zero) when valid
+#[no_mangle]
+pub unsafe extern "C" fn invalid_or_unblind(
+    proof: *const BatchDLEQProof,
+    tokens: *const *const Token,
+    blinded_tokens: *const *const BlindedToken,
+    signed_tokens: *const *const SignedToken,
+    unblinded_tokens: *mut *mut UnblindedToken,
+    tokens_length: c_int,
+    public_key: *const PublicKey,
+) -> c_int {
+    if !proof.is_null()
+        && !tokens.is_null()
+        && !blinded_tokens.is_null()
+        && !signed_tokens.is_null()
+        && !unblinded_tokens.is_null()
+        && !public_key.is_null()
+    {
+        let tokens: &[*const Token] = slice::from_raw_parts(tokens, tokens_length as usize);
+        let tokens = tokens.iter().filter_map(|p| p.as_ref());
+
+        let blinded_tokens: &[*const BlindedToken] =
+            slice::from_raw_parts(blinded_tokens, tokens_length as usize);
+        let blinded_tokens: Vec<BlindedToken> = blinded_tokens.iter().map(|p| **p).collect();
+
+        let signed_tokens: &[*const SignedToken] =
+            slice::from_raw_parts(signed_tokens, tokens_length as usize);
+        let signed_tokens: Vec<SignedToken> = signed_tokens.iter().map(|p| **p).collect();
+
+        let unblinded_tokens: &mut [*mut UnblindedToken] =
+            slice::from_raw_parts_mut(unblinded_tokens, tokens_length as usize);
+
+        match (*proof).verify_and_unblind::<Sha512, _>(
+            tokens,
+            &blinded_tokens,
+            &signed_tokens,
+            &*public_key,
+        ) {
+            Ok(temp_unblinded_tokens) => {
+                let temp_unblinded_tokens: Vec<*mut UnblindedToken> = temp_unblinded_tokens
+                    .into_iter()
+                    .map(|t| Box::into_raw(Box::new(t)))
+                    .collect();
+                unblinded_tokens.copy_from_slice(&temp_unblinded_tokens[..]);
+                return 0;
+            }
+            Err(err) => {
+                if let Some(InternalError::VerifyError) =
+                    err.source().unwrap().downcast_ref::<InternalError>()
+                {
+                    return 1;
+                } else {
+                    update_last_error(err);
+                    return -1;
+                }
+            }
+        }
+    }
+    update_last_error("Pointer to tokens, blinded tokens, signed tokens, unblinded tokens, proof or public key was null");
     -1
 }

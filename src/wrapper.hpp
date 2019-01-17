@@ -10,6 +10,7 @@ extern "C" {
 }
 
 namespace challenge_bypass_ristretto {
+
 class TokenException : std::exception {
  public:
   TokenException(const std::string&);
@@ -117,13 +118,14 @@ class UnblindedToken {
 };
 
 class Token {
+  friend class BatchDLEQProof;
+
  public:
   Token(std::shared_ptr<C_Token>);
   Token(const Token&);
   ~Token();
   static Token random();
   BlindedToken blind();
-  UnblindedToken unblind(SignedToken);
   static Token decode_base64(const std::string);
   std::string encode_base64();
 
@@ -188,12 +190,14 @@ class BatchDLEQProof {
                  SigningKey);
   ~BatchDLEQProof();
   bool verify(std::vector<BlindedToken>, std::vector<SignedToken>, PublicKey);
+  std::vector<UnblindedToken> verify_and_unblind(std::vector<Token>, std::vector<BlindedToken>, std::vector<SignedToken>, PublicKey);
   static BatchDLEQProof decode_base64(const std::string);
   std::string encode_base64();
 
  private:
   std::shared_ptr<C_BatchDLEQProof> raw;
 };
+
 }  // namespace challenge_bypass_ristretto
 
 #endif /* _CHALLENGE_BYPASS_RISTRETTO_WRAPPER_HPP */

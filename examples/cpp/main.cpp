@@ -83,22 +83,20 @@ int main() {
     return 1;
   }
   check_exception();
-  // the example batch proof should check out too
-  std::vector<BlindedToken> blinded_toks = {blinded_tok};
-  std::vector<SignedToken> signed_toks = {signed_tok};
-  if (!batch_proof.verify(blinded_toks, signed_toks, pKey)) {
-    check_exception();
-    cerr<<"ERROR: batch proof did not verify\n";
-    return 1;
-  }
-  check_exception();
 
-  // client restores the stored token
   Token restored_tok = Token::decode_base64(base64_tok);
   check_exception();
-  // client uses the blinding scalar to unblind the returned signed token
-  UnblindedToken client_unblinded_tok = restored_tok.unblind(signed_tok);
+
+  std::vector<Token> restored_toks = {restored_tok};
+  std::vector<BlindedToken> blinded_toks = {blinded_tok};
+  std::vector<SignedToken> signed_toks = {signed_tok};
+
+  // client verifies the batch proof and uses the blinding scalar to unblind the returned signed token
+  std::vector<UnblindedToken> unblinded_tokens = batch_proof.verify_and_unblind(restored_toks, blinded_toks, signed_toks, pKey);
   check_exception();
+
+  UnblindedToken client_unblinded_tok = unblinded_tokens[0];
+
   // client stores the unblinded token
   std::string base64_unblinded_tok = client_unblinded_tok.encode_base64();
   check_exception();

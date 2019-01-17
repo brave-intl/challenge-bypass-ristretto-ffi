@@ -13,6 +13,7 @@ exclude = ["generic_array", "rand", "curve25519_dalek", "sha2"]
 # A list of crate names that should be run through `cargo expand` before
 # parsing to expand any macros
 crates = ["challenge-bypass-ristretto-ffi"]
+default_features = false
 
 [export]
 # A prefix to add before the name of every item
