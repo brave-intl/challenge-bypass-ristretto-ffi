@@ -653,7 +653,7 @@ func (proof *BatchDLEQProof) Verify(blindedTokens []*BlindedToken, signedTokens 
 	return result == 0, nil
 }
 
-// Verify that the BatchDLEQProof and unblind each SignedToken if valid
+// VerifyAndUnblind each SignedToken if the BatchDLEQProof is valid
 func (proof *BatchDLEQProof) VerifyAndUnblind(tokens []*Token, blindedTokens []*BlindedToken, signedTokens []*SignedToken, publicKey *PublicKey) ([]*UnblindedToken, error) {
 	if len(tokens) != len(signedTokens) || len(blindedTokens) != len(signedTokens) {
 		return nil, errors.New("Blinded tokens and signed tokens must have same length")
