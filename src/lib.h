@@ -116,6 +116,20 @@ int batch_dleq_proof_invalid(const C_BatchDLEQProof *proof,
                              const C_PublicKey *public_key);
 
 /**
+ * Check if a batch DLEQ proof is invalid and unblind each signed token if not
+ * Returns -1 if an error was encountered, 1 if the proof failed verification and 0 if valid
+ * NOTE this is named "invalid" instead of "verify" as it returns true (non-zero) when
+ * the proof is invalid and false (zero) when valid
+ */
+int batch_dleq_proof_invalid_or_unblind(const C_BatchDLEQProof *proof,
+                                        const C_Token *const *tokens,
+                                        const C_BlindedToken *const *blinded_tokens,
+                                        const C_SignedToken *const *signed_tokens,
+                                        C_UnblindedToken **unblinded_tokens,
+                                        int tokens_length,
+                                        const C_PublicKey *public_key);
+
+/**
  * Create a new batch DLEQ proof
  * If something goes wrong, this will return a null pointer. Don't forget to
  * destroy the `BatchDLEQProof` once you are done with it!
@@ -183,20 +197,6 @@ int dleq_proof_invalid(const C_DLEQProof *proof,
 C_DLEQProof *dleq_proof_new(const C_BlindedToken *blinded_token,
                             const C_SignedToken *signed_token,
                             const C_SigningKey *key);
-
-/**
- * Check if a batch DLEQ proof is invalid and unblind each signed token if not
- * Returns -1 if an error was encountered, 1 if the proof failed verification and 0 if valid
- * NOTE this is named "invalid" instead of "verify" as it returns true (non-zero) when
- * the proof is invalid and false (zero) when valid
- */
-int invalid_or_unblind(const C_BatchDLEQProof *proof,
-                       const C_Token *const *tokens,
-                       const C_BlindedToken *const *blinded_tokens,
-                       const C_SignedToken *const *signed_tokens,
-                       C_UnblindedToken **unblinded_tokens,
-                       int tokens_length,
-                       const C_PublicKey *public_key);
 
 /**
  * Clear and return the message associated with the last error.

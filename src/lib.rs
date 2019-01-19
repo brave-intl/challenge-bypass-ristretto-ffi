@@ -594,7 +594,7 @@ pub unsafe extern "C" fn batch_dleq_proof_invalid(
 /// NOTE this is named "invalid" instead of "verify" as it returns true (non-zero) when
 /// the proof is invalid and false (zero) when valid
 #[no_mangle]
-pub unsafe extern "C" fn invalid_or_unblind(
+pub unsafe extern "C" fn batch_dleq_proof_invalid_or_unblind(
     proof: *const BatchDLEQProof,
     tokens: *const *const Token,
     blinded_tokens: *const *const BlindedToken,
