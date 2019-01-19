@@ -54,66 +54,62 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	// server creates a DLEQ proof and returns it and the signed token to the client
-	proof, err := crypto.NewDLEQProof(&serverBlindedToken, signedToken, sKey)
+	serverBlindedTokens := []*crypto.BlindedToken{&serverBlindedToken}
+	signedTokens := []*crypto.SignedToken{signedToken}
+
+	// server creates a batch DLEQ proof and returns it and the signed token to the client
+	proof, err := crypto.NewBatchDLEQProof(serverBlindedTokens, signedTokens, sKey)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	// client verifies the DLEQ proof
-	result, err := proof.Verify(blindedToken, signedToken, pKey)
+	tokens := []*crypto.Token{token}
+	blindedTokens := []*crypto.BlindedToken{blindedToken}
+
+	// client verifies the DLEQ proof and unblinds the token
+	unblindedTokens, err := proof.VerifyAndUnblind(tokens, blindedTokens, signedTokens, pKey)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	if !result {
-		log.Fatalln("Proof should have verified")
+
+	clientUnblindedToken := unblindedTokens[0]
+
+	// Redemption
+
+	// client derives the shared key from the unblinded token
+	clientvKey := clientUnblindedToken.DeriveVerificationKey()
+
+	// client signs a message using the shared key
+	clientSig, err := clientvKey.Sign("test message")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	preimage := clientUnblindedToken.Preimage()
+	// client sends the token preimage, signature and message to the server
+
+	// server derives the unblinded token using it's key and the clients token preimage
+	serverUnblindedToken := sKey.RederiveUnblindedToken(preimage)
+
+	// server derives the shared key from the unblinded token
+	servervKey := serverUnblindedToken.DeriveVerificationKey()
+
+	// server signs the same message using the shared key and compares the client signature to it's own
+	result, err := servervKey.Verify(clientSig, "test message")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	if result {
+		fmt.Println("sigs equal")
 	}
 
-	// FIXME
-	/*
-		// client uses the blinding scalar to unblind the returned signed token
-		clientUnblindedToken, err := token.Unblind(signedToken)
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		// Redemption
-
-		// client derives the shared key from the unblinded token
-		clientvKey := clientUnblindedToken.DeriveVerificationKey()
-
-		// client signs a message using the shared key
-		clientSig, err := clientvKey.Sign("test message")
-		if err != nil {
-			log.Fatalln(err)
-		}
-		preimage := clientUnblindedToken.Preimage()
-		// client sends the token preimage, signature and message to the server
-
-		// server derives the unblinded token using it's key and the clients token preimage
-		serverUnblindedToken := sKey.RederiveUnblindedToken(preimage)
-
-		// server derives the shared key from the unblinded token
-		servervKey := serverUnblindedToken.DeriveVerificationKey()
-
-		// server signs the same message using the shared key and compares the client signature to it's own
-		result, err = servervKey.Verify(clientSig, "test message")
-		if err != nil {
-			log.Fatalln(err)
-		}
-		if result {
-			fmt.Println("sigs equal")
-		}
-
-		// server signs the wrong message using the shared key and compares the client signature to it's own
-		result, err = servervKey.Verify(clientSig, "message")
-		if err != nil {
-			log.Fatalln(err)
-		}
-		if result {
-			log.Fatalln("ERROR: sigs equal")
-		}
-	*/
+	// server signs the wrong message using the shared key and compares the client signature to it's own
+	result, err = servervKey.Verify(clientSig, "message")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	if result {
+		log.Fatalln("ERROR: sigs equal")
+	}
 
 	// force finalizers to run
 	runtime.GC()

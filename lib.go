@@ -648,9 +648,54 @@ func (proof *BatchDLEQProof) Verify(blindedTokens []*BlindedToken, signedTokens 
 		C.int(len(cBlindedTokens)), publicKey.raw)
 
 	if result < 0 {
-		return false, wrapLastError("Failed to verify batch DLEQ proof")
+		return false, wrapLastError("Error duing batch DLEQ proof verification")
 	}
 	return result == 0, nil
+}
+
+// Verify that the BatchDLEQProof and unblind each SignedToken if valid
+func (proof *BatchDLEQProof) VerifyAndUnblind(tokens []*Token, blindedTokens []*BlindedToken, signedTokens []*SignedToken, publicKey *PublicKey) ([]*UnblindedToken, error) {
+	if len(tokens) != len(signedTokens) || len(blindedTokens) != len(signedTokens) {
+		return nil, errors.New("Blinded tokens and signed tokens must have same length")
+	}
+
+	cTokens := make([]*C.C_Token, len(tokens), len(tokens))
+	for k, v := range tokens {
+		cTokens[k] = v.raw
+	}
+	cBlindedTokens := make([]*C.C_BlindedToken, len(blindedTokens), len(blindedTokens))
+	for k, v := range blindedTokens {
+		cBlindedTokens[k] = v.raw
+	}
+	cSignedTokens := make([]*C.C_SignedToken, len(signedTokens), len(signedTokens))
+	for k, v := range signedTokens {
+		cSignedTokens[k] = v.raw
+	}
+	cUnblindedTokens := make([]*C.C_UnblindedToken, len(tokens), len(tokens))
+
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
+	result := C.batch_dleq_proof_invalid_or_unblind(proof.raw,
+		(**C.C_Token)(unsafe.Pointer(&cTokens[0])),
+		(**C.C_BlindedToken)(unsafe.Pointer(&cBlindedTokens[0])),
+		(**C.C_SignedToken)(unsafe.Pointer(&cSignedTokens[0])),
+		(**C.C_UnblindedToken)(unsafe.Pointer(&cUnblindedTokens[0])),
+		C.int(len(cBlindedTokens)), publicKey.raw)
+
+	if result < 0 {
+		return nil, wrapLastError("Error duing batch DLEQ proof verification")
+	} else if result > 0 {
+		return nil, errors.New("Invalid proof")
+	}
+
+	unblindedTokens := make([]*UnblindedToken, len(tokens), len(tokens))
+	for k, v := range cUnblindedTokens {
+		unblindedTokens[k] = &UnblindedToken{raw: v}
+		runtime.SetFinalizer(unblindedTokens[k], unblindedTokenFinalizer)
+	}
+
+	return unblindedTokens, nil
 }
 
 // MarshalText marshalls the verification signature into text.
