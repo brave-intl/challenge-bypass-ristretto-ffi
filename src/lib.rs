@@ -427,11 +427,18 @@ pub unsafe extern "C" fn dleq_proof_new(
     key: *const SigningKey,
 ) -> *mut DLEQProof {
     if !blinded_token.is_null() && !signed_token.is_null() && !key.is_null() {
-        let mut rng = OsRng::new().unwrap();
-        match DLEQProof::new::<Sha512, OsRng>(&mut rng, &*blinded_token, &*signed_token, &*key) {
-            Ok(proof) => return Box::into_raw(Box::new(proof)),
-            Err(err) => update_last_error(err),
+        match OsRng::new() {
+            Ok(mut rng) => {
+                match DLEQProof::new::<Sha512, OsRng>(&mut rng, &*blinded_token, &*signed_token, &*key) {
+                    Ok(proof) => return Box::into_raw(Box::new(proof)),
+                    Err(err) => update_last_error(err),
+                }
+            },
+            Err(err) => {
+                update_last_error(err);
+            }
         }
+        return ptr::null_mut();
     }
     update_last_error("Pointer to blinded token, signed token or signing key was null");
     ptr::null_mut()
