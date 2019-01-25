@@ -7,5 +7,7 @@ matrix:
     - name: "Windows Build"
       os: windows
       rust: nightly
+      env:
+        - RUSTFLAGS="-C link-arg=/MDd"
       script:
-        - cargo rustc -- -Z print-link-args
+        -  cargo rustc -- -Z print-link-args
