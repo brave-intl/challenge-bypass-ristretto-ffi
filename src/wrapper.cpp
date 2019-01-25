@@ -72,7 +72,7 @@ namespace challenge_bypass_ristretto {
   TokenPreimage::TokenPreimage(const TokenPreimage& other) = default;
   TokenPreimage::~TokenPreimage() {}
 
-  TokenPreimage TokenPreimage::decode_base64(const std::string encoded) { 
+  TokenPreimage TokenPreimage::decode_base64(const std::string encoded) {
     CLEAR_LAST_EXCEPTION();
     std::shared_ptr<C_TokenPreimage> raw_preimage(token_preimage_decode_base64(encoded.c_str()), token_preimage_destroy);
     if (raw_preimage == nullptr) {
@@ -81,7 +81,7 @@ namespace challenge_bypass_ristretto {
     return TokenPreimage(raw_preimage);
   }
 
-  std::string TokenPreimage::encode_base64() { 
+  std::string TokenPreimage::encode_base64() {
     CLEAR_LAST_EXCEPTION();
     char* tmp = token_preimage_encode_base64(raw.get());
     std::string result = std::string(tmp);
@@ -125,7 +125,7 @@ namespace challenge_bypass_ristretto {
     return UnblindedToken(raw_unblinded);
   }
 
-  Token Token::decode_base64(const std::string encoded) { 
+  Token Token::decode_base64(const std::string encoded) {
     CLEAR_LAST_EXCEPTION();
     std::shared_ptr<C_Token> raw_tok(token_decode_base64(encoded.c_str()), token_destroy);
     if (raw_tok == nullptr) {
@@ -134,7 +134,7 @@ namespace challenge_bypass_ristretto {
     return Token(raw_tok);
   }
 
-  std::string Token::encode_base64() { 
+  std::string Token::encode_base64() {
     CLEAR_LAST_EXCEPTION();
     char* tmp = token_encode_base64(raw.get());
     std::string result = std::string(tmp);
@@ -149,7 +149,7 @@ namespace challenge_bypass_ristretto {
   BlindedToken::BlindedToken(const BlindedToken& other) = default;
   BlindedToken::~BlindedToken() { }
 
-  BlindedToken BlindedToken::decode_base64(const std::string encoded) { 
+  BlindedToken BlindedToken::decode_base64(const std::string encoded) {
     CLEAR_LAST_EXCEPTION();
     std::shared_ptr<C_BlindedToken> raw_blinded(blinded_token_decode_base64(encoded.c_str()), blinded_token_destroy);
     if (raw_blinded == nullptr) {
@@ -158,7 +158,7 @@ namespace challenge_bypass_ristretto {
     return BlindedToken(raw_blinded);
   }
 
-  std::string BlindedToken::encode_base64() { 
+  std::string BlindedToken::encode_base64() {
     CLEAR_LAST_EXCEPTION();
     char* tmp = blinded_token_encode_base64(raw.get());
     std::string result = std::string(tmp);
@@ -173,7 +173,7 @@ namespace challenge_bypass_ristretto {
   SignedToken::SignedToken(const SignedToken& other) = default;
   SignedToken::~SignedToken() {}
 
-  SignedToken SignedToken::decode_base64(const std::string encoded) { 
+  SignedToken SignedToken::decode_base64(const std::string encoded) {
     CLEAR_LAST_EXCEPTION();
     std::shared_ptr<C_SignedToken> raw_signed(signed_token_decode_base64(encoded.c_str()), signed_token_destroy);
     if (raw_signed == nullptr) {
@@ -182,7 +182,7 @@ namespace challenge_bypass_ristretto {
     return SignedToken(raw_signed);
   }
 
-  std::string SignedToken::encode_base64() { 
+  std::string SignedToken::encode_base64() {
     CLEAR_LAST_EXCEPTION();
     char* tmp = signed_token_encode_base64(raw.get());
     std::string result = std::string(tmp);
@@ -197,7 +197,7 @@ namespace challenge_bypass_ristretto {
   VerificationSignature::VerificationSignature(const VerificationSignature& other) = default;
   VerificationSignature::~VerificationSignature() {}
 
-  VerificationSignature VerificationSignature::decode_base64(const std::string encoded) { 
+  VerificationSignature VerificationSignature::decode_base64(const std::string encoded) {
     CLEAR_LAST_EXCEPTION();
     std::shared_ptr<C_VerificationSignature> raw_sig(verification_signature_decode_base64(encoded.c_str()), verification_signature_destroy);
     if (raw_sig == nullptr) {
@@ -206,7 +206,7 @@ namespace challenge_bypass_ristretto {
     return VerificationSignature(raw_sig);
   }
 
-  std::string VerificationSignature::encode_base64() { 
+  std::string VerificationSignature::encode_base64() {
     CLEAR_LAST_EXCEPTION();
     char* tmp = verification_signature_encode_base64(raw.get());
     std::string result = std::string(tmp);
@@ -231,7 +231,7 @@ namespace challenge_bypass_ristretto {
     return TokenPreimage(std::shared_ptr<C_TokenPreimage>(unblinded_token_preimage(raw.get()), token_preimage_destroy));
   }
 
-  UnblindedToken UnblindedToken::decode_base64(const std::string encoded) { 
+  UnblindedToken UnblindedToken::decode_base64(const std::string encoded) {
     CLEAR_LAST_EXCEPTION();
     std::shared_ptr<C_UnblindedToken> raw_unblinded(unblinded_token_decode_base64(encoded.c_str()), unblinded_token_destroy);
     if (raw_unblinded == nullptr) {
@@ -240,7 +240,7 @@ namespace challenge_bypass_ristretto {
     return UnblindedToken(raw_unblinded);
   }
 
-  std::string UnblindedToken::encode_base64() { 
+  std::string UnblindedToken::encode_base64() {
     CLEAR_LAST_EXCEPTION();
     char* tmp = unblinded_token_encode_base64(raw.get());
     std::string result = std::string(tmp);
@@ -309,7 +309,7 @@ namespace challenge_bypass_ristretto {
     return PublicKey(std::shared_ptr<C_PublicKey>(signing_key_get_public_key(raw.get()), public_key_destroy));
   }
 
-  SigningKey SigningKey::decode_base64(const std::string encoded) { 
+  SigningKey SigningKey::decode_base64(const std::string encoded) {
     CLEAR_LAST_EXCEPTION();
     std::shared_ptr<C_SigningKey> raw_key(signing_key_decode_base64(encoded.c_str()), signing_key_destroy);
     if (raw_key == nullptr) {
@@ -318,7 +318,7 @@ namespace challenge_bypass_ristretto {
     return SigningKey(raw_key);
   }
 
-  std::string SigningKey::encode_base64() { 
+  std::string SigningKey::encode_base64() {
     CLEAR_LAST_EXCEPTION();
     char* tmp = signing_key_encode_base64(raw.get());
     std::string result = std::string(tmp);
@@ -333,7 +333,7 @@ namespace challenge_bypass_ristretto {
   PublicKey::PublicKey(const PublicKey& other) = default;
   PublicKey::~PublicKey() {}
 
-  PublicKey PublicKey::decode_base64(const std::string encoded) { 
+  PublicKey PublicKey::decode_base64(const std::string encoded) {
     CLEAR_LAST_EXCEPTION();
     std::shared_ptr<C_PublicKey> raw_key(public_key_decode_base64(encoded.c_str()), public_key_destroy);
     if (raw_key == nullptr) {
@@ -342,7 +342,7 @@ namespace challenge_bypass_ristretto {
     return PublicKey(raw_key);
   }
 
-  std::string PublicKey::encode_base64() { 
+  std::string PublicKey::encode_base64() {
     CLEAR_LAST_EXCEPTION();
     char* tmp = public_key_encode_base64(raw.get());
     std::string result = std::string(tmp);
@@ -357,7 +357,7 @@ namespace challenge_bypass_ristretto {
   DLEQProof::DLEQProof(const DLEQProof& other) = default;
   DLEQProof::~DLEQProof() {}
 
-  DLEQProof::DLEQProof(BlindedToken blinded_token, SignedToken signed_token, SigningKey key) { 
+  DLEQProof::DLEQProof(BlindedToken blinded_token, SignedToken signed_token, SigningKey key) {
     CLEAR_LAST_EXCEPTION();
     raw = std::shared_ptr<C_DLEQProof>(dleq_proof_new(blinded_token.raw.get(), signed_token.raw.get(), key.raw.get()), dleq_proof_destroy);
     if (raw == nullptr) {
@@ -365,7 +365,7 @@ namespace challenge_bypass_ristretto {
     }
   }
 
-  bool DLEQProof::verify(BlindedToken blinded_token, SignedToken signed_token, PublicKey key) { 
+  bool DLEQProof::verify(BlindedToken blinded_token, SignedToken signed_token, PublicKey key) {
     CLEAR_LAST_EXCEPTION();
     int result = dleq_proof_invalid(raw.get(), blinded_token.raw.get(), signed_token.raw.get(), key.raw.get());
     if (result < 0) {
@@ -374,7 +374,7 @@ namespace challenge_bypass_ristretto {
     return result == 0;
   }
 
-  DLEQProof DLEQProof::decode_base64(const std::string encoded) { 
+  DLEQProof DLEQProof::decode_base64(const std::string encoded) {
     CLEAR_LAST_EXCEPTION();
     std::shared_ptr<C_DLEQProof> raw_proof(dleq_proof_decode_base64(encoded.c_str()), dleq_proof_destroy);
     if (raw_proof == nullptr) {
@@ -383,7 +383,7 @@ namespace challenge_bypass_ristretto {
     return DLEQProof(raw_proof);
   }
 
-  std::string DLEQProof::encode_base64() { 
+  std::string DLEQProof::encode_base64() {
     CLEAR_LAST_EXCEPTION();
     char* tmp = dleq_proof_encode_base64(raw.get());
     std::string result = std::string(tmp);
@@ -398,7 +398,7 @@ namespace challenge_bypass_ristretto {
   BatchDLEQProof::BatchDLEQProof(const BatchDLEQProof& other) = default;
   BatchDLEQProof::~BatchDLEQProof() {}
 
-  BatchDLEQProof::BatchDLEQProof(std::vector<BlindedToken> blinded_tokens, std::vector<SignedToken> signed_tokens, SigningKey key) { 
+  BatchDLEQProof::BatchDLEQProof(std::vector<BlindedToken> blinded_tokens, std::vector<SignedToken> signed_tokens, SigningKey key) {
     CLEAR_LAST_EXCEPTION();
     if (blinded_tokens.size() != signed_tokens.size()) {
       THROW(TokenException("Blinded tokens and signed tokens must have the same length"));
@@ -407,7 +407,7 @@ namespace challenge_bypass_ristretto {
     std::vector<C_BlindedToken*> raw_blinded_tokens;
     std::vector<C_SignedToken*> raw_signed_tokens;
 
-    for (size_t i = 0; i < blinded_tokens.size(); i++) {
+    for (unsigned long i = 0; i < blinded_tokens.size(); i++) {
       raw_blinded_tokens.push_back(blinded_tokens[i].raw.get());
       raw_signed_tokens.push_back(signed_tokens[i].raw.get());
     }
@@ -418,7 +418,7 @@ namespace challenge_bypass_ristretto {
     }
   }
 
-  bool BatchDLEQProof::verify(std::vector<BlindedToken> blinded_tokens, std::vector<SignedToken> signed_tokens, PublicKey key) { 
+  bool BatchDLEQProof::verify(std::vector<BlindedToken> blinded_tokens, std::vector<SignedToken> signed_tokens, PublicKey key) {
     CLEAR_LAST_EXCEPTION();
     if (blinded_tokens.size() != signed_tokens.size()) {
       THROW(TokenException("Blinded tokens and signed tokens must have the same length"));
@@ -427,7 +427,7 @@ namespace challenge_bypass_ristretto {
     std::vector<C_BlindedToken*> raw_blinded_tokens;
     std::vector<C_SignedToken*> raw_signed_tokens;
 
-    for (size_t i = 0; i < blinded_tokens.size(); i++) {
+    for (unsigned long i = 0; i < blinded_tokens.size(); i++) {
       raw_blinded_tokens.push_back(blinded_tokens[i].raw.get());
       raw_signed_tokens.push_back(signed_tokens[i].raw.get());
     }
@@ -439,7 +439,7 @@ namespace challenge_bypass_ristretto {
     return result == 0;
   }
 
-  BatchDLEQProof BatchDLEQProof::decode_base64(const std::string encoded) { 
+  BatchDLEQProof BatchDLEQProof::decode_base64(const std::string encoded) {
     CLEAR_LAST_EXCEPTION();
     std::shared_ptr<C_BatchDLEQProof> raw_proof(batch_dleq_proof_decode_base64(encoded.c_str()), batch_dleq_proof_destroy);
     if (raw_proof == nullptr) {
@@ -448,7 +448,7 @@ namespace challenge_bypass_ristretto {
     return BatchDLEQProof(raw_proof);
   }
 
-  std::string BatchDLEQProof::encode_base64() { 
+  std::string BatchDLEQProof::encode_base64() {
     CLEAR_LAST_EXCEPTION();
     char* tmp = batch_dleq_proof_encode_base64(raw.get());
     std::string result = std::string(tmp);
