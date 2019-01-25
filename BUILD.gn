@@ -61,19 +61,32 @@ if (is_win) {
 
 config("external_config") {
   include_dirs = [ "src" ]
+}
+
+source_set("challenge_bypass_ristretto_ffi") {
+  public_configs = [ ":external_config" ]
+
+  defines = [
+    "NO_CXXEXCEPTIONS=1"
+  ]
+
+  sources = [
+    "src/wrapper.cpp",
+    "src/wrapper.hpp"
+  ]
+
+  deps = [
+    ":challenge_bypass_ristretto_ffi_rust"
+  ]
+
   libs = [ challenge_bypass_lib_path ]
 }
 
-cargo_build("challenge_bypass_ristretto_ffi") {
-  public_configs = [ ":external_config" ]
-
+cargo_build("challenge_bypass_ristretto_ffi_rust") {
   inputs = [
-    "build.rs",
     "Cargo.toml",
     "src/lib.h",
     "src/lib.rs",
-    "src/wrapper.cpp",
-    "src/wrapper.hpp"
   ]
 
   output = challenge_bypass_lib_path
