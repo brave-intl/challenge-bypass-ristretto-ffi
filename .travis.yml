@@ -8,4 +8,4 @@ matrix:
       os: windows
       rust: nightly
       script:
-        - cargo build -v
+        - cargo rustc -- -Z print-link-args
