@@ -5,13 +5,24 @@ ifeq (darwin,$(OS))
 CFLAGS += -framework Security
 endif
 
+ifdef NDEBUG
+CFLAGS += -DNDEBUG=${NDEBUG}
+endif
+
+ifdef NO_CXXEXCEPTIONS
+CFLAGS += -DNO_CXXEXCEPTIONS=${NO_CXXEXCEPTIONS}
+endif
+
 all: examples/cpp.out
 
 src/lib.h: src/lib.rs
 	cbindgen -o src/lib.h
 
-examples/cpp.out: target/debug/libchallenge_bypass_ristretto.a examples/cpp/main.cpp src/lib.h
-	g++ $(CFLAGS) -std=gnu++0x examples/cpp/main.cpp ./target/debug/libchallenge_bypass_ristretto.a -I ./src -lpthread -ldl -o examples/cpp.out
+examples/cpp.out: target/debug/libchallenge_bypass_ristretto.a examples/wrapper.o examples/cpp/main.cpp 
+	g++ $(CFLAGS) -std=gnu++0x examples/cpp/main.cpp examples/wrapper.o ./target/debug/libchallenge_bypass_ristretto.a -I ./src -lpthread -ldl -o examples/cpp.out
+
+examples/wrapper.o: src/lib.h src/wrapper.cpp src/wrapper.hpp
+	g++ $(CFLAGS) -std=gnu++0x src/wrapper.cpp -I src/ -c  -o examples/wrapper.o
 
 target/debug/libchallenge_bypass_ristretto.a: src/lib.rs Cargo.toml
 	cargo build
@@ -23,7 +34,7 @@ examples/golang.dyn.out: target/x86_64-unknown-linux-musl/debug/libchallenge_byp
 	go build -o examples/golang.dyn.out examples/golang/main.go
 
 target/x86_64-unknown-linux-musl/debug/libchallenge_bypass_ristretto.a: src/lib.rs Cargo.toml
-	cargo build --no-default-features --target=x86_64-unknown-linux-musl
+	cargo build --target=x86_64-unknown-linux-musl
 
 go-docker:
 	docker build -f examples/golang/Dockerfile -t challenge-bypass-ristretto-ffi-go .
