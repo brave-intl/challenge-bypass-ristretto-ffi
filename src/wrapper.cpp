@@ -424,7 +424,7 @@ namespace challenge_bypass_ristretto {
 
     int result = batch_dleq_proof_invalid(raw.get(), raw_blinded_tokens.data(), raw_signed_tokens.data(), blinded_tokens.size(), key.raw.get());
     if (result < 0) {
-      THROW(TokenException::last_error("Failed to verify DLEQ proof"));
+      THROW(TokenException::last_error("Could not verify DLEQ proof"));
     }
     return result == 0;
   }
@@ -450,8 +450,10 @@ namespace challenge_bypass_ristretto {
     }
 
     int result = batch_dleq_proof_invalid_or_unblind(raw.get(), raw_tokens.data(), raw_blinded_tokens.data(), raw_signed_tokens.data(), raw_unblinded_tokens.data(), tokens.size(), public_key.raw.get());
-    if (result < 0) {
-      THROW(TokenException::last_error("Failed to verify DLEQ proof"));
+    if (result != 0) {
+      if (result < 0) {
+        THROW(TokenException::last_error("Could not verify DLEQ proof"));
+      }
       return unblinded_tokens;
     }
 
