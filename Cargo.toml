@@ -1,18 +1,14 @@
 [package]
 authors = ["eV <ev@7pr.xyz>"]
 name = "challenge-bypass-ristretto-ffi"
-version = "0.1.0"
+version = "1.0.0-pre.0"
 
 [dependencies]
 base64 = "0.9.3"
+challenge-bypass-ristretto = { version = "1.0.0-pre.0", features = ["base64"] }
 hmac = "0.7"
 rand = "0.6.0"
 sha2 = "0.8"
-
-[dependencies.challenge-bypass-ristretto]
-git = "https://github.com/brave-intl/challenge-bypass-ristretto"
-rev = "7e25308ad5b5e2daf73d586fae06eed33547cf22"
-features = ["base64"]
 
 [lib]
 crate-type = [
