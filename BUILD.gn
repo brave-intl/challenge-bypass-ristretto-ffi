@@ -63,7 +63,7 @@ config("external_config") {
   include_dirs = [ "src" ]
 }
 
-source_set("challenge_bypass_ristretto_ffi") {
+static_library("challenge_bypass_ristretto_ffi") {
   public_configs = [ ":external_config" ]
 
   defines = [
