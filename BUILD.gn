@@ -79,6 +79,12 @@ static_library("challenge_bypass_ristretto_ffi") {
     ":challenge_bypass_ristretto_ffi_rust"
   ]
 
+  configs -= [ "//build/config/compiler:chromium_code" ]
+  configs += [ "//build/config/compiler:no_chromium_code" ]
+
+  configs -= [ "//build/config/gcc:symbol_visibility_hidden" ]
+  configs += [ "//build/config/gcc:symbol_visibility_default" ]
+
   libs = [ challenge_bypass_lib_path ]
 }
 
