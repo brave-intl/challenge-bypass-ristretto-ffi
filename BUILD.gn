@@ -2,73 +2,18 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import("config.gni")
 import("//brave/build/cargo.gni")
-
-challenge_bypass_build_path = "$root_gen_dir/challenge_bypass_ristretto/out"
-
-challenge_bypass_lib_path = challenge_bypass_build_path
-
-challenge_bypass_target = ""
-
-# See https://forge.rust-lang.org/platform-support.html for possible targets
-if (is_win) {
-  if (target_cpu == "x86") {
-    challenge_bypass_target = "i686-pc-windows-msvc"
-  } else if (target_cpu == "x64") {
-    challenge_bypass_target = "x86_64-pc-windows-msvc"
-  }
-} else if (is_mac) {
-  if (target_cpu == "x64") {
-    challenge_bypass_target = "x86_64-apple-darwin"
-  }
-} else if (is_linux) {
-  if (target_cpu == "x64") {
-    challenge_bypass_target = "x86_64-unknown-linux-gnu"
-  }
-} else if (is_android) {
-  if (target_cpu == "arm") {
-    challenge_bypass_target = "arm-linux-androideabi"
-  } else if (target_cpu == "arm64") {
-    challenge_bypass_target = "aarch64-linux-android"
-  } else if (target_cpu == "x86") {
-    challenge_bypass_target = "i686-linux-android"
-  } else if (target_cpu == "x64") {
-    challenge_bypass_target = "x86_64-linux-android"
-  }
-} else if (is_ios) {
-  if (target_cpu == "arm64") {
-    challenge_bypass_target = "aarch64-apple-ios"
-  } else if (target_cpu == "x64") {
-    challenge_bypass_target = "x86_64-apple-ios"
-  }
-}
-
-if (challenge_bypass_target != "") {
-  challenge_bypass_lib_path += "/" + challenge_bypass_target
-}
-
-if (is_debug) {
-  challenge_bypass_lib_path += "/debug"
-} else {
-  challenge_bypass_lib_path += "/release"
-}
-
-if (is_win) {
-  challenge_bypass_lib_path += "/challenge_bypass_ristretto.lib"
-} else if (is_mac || is_ios || is_linux || is_android) {
-  challenge_bypass_lib_path += "/libchallenge_bypass_ristretto.a"
-}
 
 config("external_config") {
   include_dirs = [ "src" ]
-}
-
-static_library("challenge_bypass_ristretto_ffi") {
-  public_configs = [ ":external_config" ]
-
   defines = [
     "NO_CXXEXCEPTIONS=1"
   ]
+}
+
+source_set("challenge_bypass_ristretto_ffi") {
+  public_configs = [ ":external_config" ]
 
   sources = [
     "src/wrapper.cpp",
@@ -76,13 +21,19 @@ static_library("challenge_bypass_ristretto_ffi") {
   ]
 
   deps = [
-    ":challenge_bypass_ristretto_ffi_rust"
+    ":challenge_bypass_ristretto"
   ]
 
   libs = [ challenge_bypass_lib_path ]
+
+  if (is_mac || is_ios ) {
+    libs += [
+      "Security.framework"
+    ]
+  }
 }
 
-cargo_build("challenge_bypass_ristretto_ffi_rust") {
+cargo_build("challenge_bypass_ristretto") {
   inputs = [
     "Cargo.toml",
     "src/lib.h",
