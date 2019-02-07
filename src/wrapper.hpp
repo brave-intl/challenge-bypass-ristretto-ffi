@@ -13,22 +13,23 @@ namespace challenge_bypass_ristretto {
 
 class TokenException : std::exception {
  public:
-  TokenException(const std::string&);
+  TokenException(const std::string& msg);
   ~TokenException() override;
-  const char* what() const throw() override;
   static TokenException last_error(std::string msg);
+  const char* what() const noexcept override;
 #ifdef NO_CXXEXCEPTIONS
-  static TokenException none();
-  bool is_empty();
+  static const TokenException& none();
+  static void set_last_exception(const TokenException& exception);
+  bool is_empty() const;
 #endif
 
  private:
-  std::string msg;
+  std::string msg_;
 };
 
 #ifdef NO_CXXEXCEPTIONS
 bool exception_occurred();
-TokenException get_last_exception();
+const TokenException get_last_exception();
 #endif
 
 class TokenPreimage {

@@ -21,6 +21,7 @@ source_set("challenge_bypass_ristretto_ffi") {
   ]
 
   deps = [
+    "//base",
     ":challenge_bypass_ristretto"
   ]
 

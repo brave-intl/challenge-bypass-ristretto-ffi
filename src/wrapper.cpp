@@ -6,6 +6,11 @@ extern "C" {
 
 #include <thread>
 
+#ifdef NO_CXXEXCEPTIONS
+#include "base/no_destructor.h"
+#include "base/threading/thread_local.h"
+#endif
+
 #ifndef DCHECK_IS_ON
 #ifdef NDEBUG
 #define DCHECK_IS_ON() 1
@@ -23,8 +28,10 @@ extern "C" {
 #endif
 
 #ifdef NO_CXXEXCEPTIONS
-#define THROW(expr) (last_exception = expr);
-#define CLEAR_LAST_EXCEPTION(expr) do { DCHECK(!exception_occurred()); last_exception = TokenException::none(); } while (0);
+#define THROW(expr) TokenException::set_last_exception(expr);
+#define CLEAR_LAST_EXCEPTION(expr) \
+    DCHECK(!exception_occurred()); \
+    TokenException::set_last_exception(TokenException::none());
 #else
 #define THROW(expr) (throw expr);
 #define CLEAR_LAST_EXCEPTION(expr) ((void)0);
@@ -32,38 +39,62 @@ extern "C" {
 
 // class TokenException
 namespace challenge_bypass_ristretto {
-  TokenException::TokenException(const std::string& msg) : msg(msg){}
-  TokenException::~TokenException() {}
-
-  const char* TokenException::what() const throw() { return msg.c_str(); }
-
-  TokenException TokenException::last_error(std::string default_msg) {
-    char* tmp = last_error_message();
-    if (tmp != nullptr) {
-      std::string msg = std::string(tmp);
-      c_char_destroy(tmp);
-      return TokenException(default_msg + ": " + msg);
-    } else {
-      return TokenException(default_msg);
-    }
-  }
 
 #ifdef NO_CXXEXCEPTIONS
-  TokenException TokenException::none() { return TokenException(""); }
-  bool TokenException::is_empty() { return msg.empty() ; }
+namespace {
 
-  thread_local TokenException last_exception = TokenException::none();
+TokenException* GetOrCreateLastException() {
+  static base::NoDestructor<base::ThreadLocalPointer<TokenException>>
+      last_exception;
+  TokenException* token_exception = last_exception.get()->Get();
+  if (!token_exception)
+    last_exception.get()->Set(new TokenException(""));
+  return token_exception;
+}
 
-  bool exception_occurred() {
-    return !last_exception.is_empty();
-  }
+}
 
-  TokenException get_last_exception() {
-    TokenException tmp = last_exception;
-    last_exception = TokenException::none();
-    return tmp;
-  }
+const TokenException get_last_exception() {
+  TokenException* token_exception = GetOrCreateLastException();
+
+  TokenException tmp = *token_exception;
+  TokenException::set_last_exception(TokenException::none());
+  return tmp;
+}
+
+bool exception_occurred() {
+  return !get_last_exception().is_empty();
+}
 #endif
+
+TokenException::TokenException(const std::string& msg) : msg_(msg){}
+TokenException::~TokenException() {}
+
+TokenException TokenException::last_error(std::string default_msg) {
+  char* tmp = last_error_message();
+  if (tmp != nullptr) {
+    std::string msg = std::string(tmp);
+    c_char_destroy(tmp);
+    return TokenException(default_msg + ": " + msg);
+  } else {
+    return TokenException(default_msg);
+  }
+}
+const char* TokenException::what() const noexcept { return msg_.c_str(); }
+
+#ifdef NO_CXXEXCEPTIONS
+const TokenException& TokenException::none() {
+  static base::NoDestructor<TokenException> token_exception_none("");
+  return *token_exception_none;
+}
+
+bool TokenException::is_empty() const { return msg_.empty(); }
+
+void TokenException::set_last_exception(const TokenException& exception) {
+  TokenException* token_exception = GetOrCreateLastException();
+  token_exception->msg_ = exception.msg_;
+}
+#endif  // NO_CXXEXCEPTIONS
 }
 
 // class TokenPreimage
@@ -115,7 +146,7 @@ namespace challenge_bypass_ristretto {
     return BlindedToken(raw_blinded);
   }
 
-  Token Token::decode_base64(const std::string encoded) { 
+  Token Token::decode_base64(const std::string encoded) {
     CLEAR_LAST_EXCEPTION();
     std::shared_ptr<C_Token> raw_tok(token_decode_base64(encoded.c_str()), token_destroy);
     if (raw_tok == nullptr) {
@@ -471,7 +502,7 @@ namespace challenge_bypass_ristretto {
     return unblinded_tokens;
   }
 
-  BatchDLEQProof BatchDLEQProof::decode_base64(const std::string encoded) { 
+  BatchDLEQProof BatchDLEQProof::decode_base64(const std::string encoded) {
     CLEAR_LAST_EXCEPTION();
     std::shared_ptr<C_BatchDLEQProof> raw_proof(batch_dleq_proof_decode_base64(encoded.c_str()), batch_dleq_proof_destroy);
     if (raw_proof == nullptr) {
