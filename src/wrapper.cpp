@@ -6,11 +6,6 @@ extern "C" {
 
 #include <thread>
 
-#ifdef NO_CXXEXCEPTIONS
-#include "base/no_destructor.h"
-#include "base/threading/thread_local.h"
-#endif
-
 #ifndef DCHECK_IS_ON
 #ifdef NDEBUG
 #define DCHECK_IS_ON() 1
@@ -28,6 +23,7 @@ extern "C" {
 #endif
 
 #ifdef NO_CXXEXCEPTIONS
+#include "wrapper_no_exceptions.h"
 #define THROW(expr) TokenException::set_last_exception(expr);
 #define CLEAR_LAST_EXCEPTION(expr) \
     DCHECK(!exception_occurred()); \
@@ -41,19 +37,6 @@ extern "C" {
 namespace challenge_bypass_ristretto {
 
 #ifdef NO_CXXEXCEPTIONS
-namespace {
-
-TokenException* GetOrCreateLastException() {
-  static base::NoDestructor<base::ThreadLocalPointer<TokenException>>
-      last_exception;
-  TokenException* token_exception = last_exception.get()->Get();
-  if (!token_exception)
-    last_exception.get()->Set(new TokenException(""));
-  return token_exception;
-}
-
-}
-
 const TokenException get_last_exception() {
   TokenException* token_exception = GetOrCreateLastException();
 
@@ -83,11 +66,6 @@ TokenException TokenException::last_error(std::string default_msg) {
 const char* TokenException::what() const noexcept { return msg_.c_str(); }
 
 #ifdef NO_CXXEXCEPTIONS
-const TokenException& TokenException::none() {
-  static base::NoDestructor<TokenException> token_exception_none("");
-  return *token_exception_none;
-}
-
 bool TokenException::is_empty() const { return msg_.empty(); }
 
 void TokenException::set_last_exception(const TokenException& exception) {

@@ -7,9 +7,12 @@ import("//brave/build/cargo.gni")
 
 config("external_config") {
   include_dirs = [ "src" ]
-  defines = [
-    "NO_CXXEXCEPTIONS=1"
-  ]
+
+  if (!challenge_bypass_use_exceptions) {
+    defines = [
+      "NO_CXXEXCEPTIONS=1"
+    ]
+  }
 }
 
 source_set("challenge_bypass_ristretto_ffi") {
@@ -21,9 +24,21 @@ source_set("challenge_bypass_ristretto_ffi") {
   ]
 
   deps = [
-    "//base",
     ":challenge_bypass_ristretto"
   ]
+
+  if (!challenge_bypass_use_exceptions) {
+    sources += [
+      "src/wrapper_no_exceptions.h",
+    ]
+
+    if (challenge_bypass_use_thread_local_pointer) {
+      sources += [ "src/wrapper_no_exceptions_thread_local.cc" ]
+    } else {
+      sources += [ "src/wrapper_no_exceptions_thread_local_pointer.cc", ]
+      deps += [ "//base" ]
+    }
+  }
 
   libs = [ challenge_bypass_lib_path ]
 

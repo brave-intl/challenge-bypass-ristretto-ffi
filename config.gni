@@ -1,5 +1,7 @@
 declare_args() {
   challenge_bypass_shared_lib = is_mac
+  challenge_bypass_use_exceptions = false
+  challenge_bypass_use_thread_local_pointer = true
 }
 
 challenge_bypass_build_path = "$root_gen_dir/challenge_bypass_ristretto/out"
