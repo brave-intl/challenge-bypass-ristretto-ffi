@@ -85,3 +85,6 @@ matrix:
         - cat .cargo/config
       script:
         - cargo build --target arm-linux-androideabi
+  allow_failures:
+    - name: "Linux Build and C++ Example - NO_CXXEXCEPTIONS"
+    - name: "Linux Build and C++ Example - NO_CXXEXCEPTIONS NDEBUG"
