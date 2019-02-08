@@ -29,7 +29,10 @@ extern "C" {
 
 #ifdef NO_CXXEXCEPTIONS
 #define THROW(expr) TokenException::set_last_exception(expr);
-#define CLEAR_LAST_EXCEPTION(expr) do { DCHECK(!exception_occurred()); TokenException::set_last_exception(TokenException::none()); } while(0);
+#define CLEAR_LAST_EXCEPTION(expr) do { \
+  DCHECK(!exception_occurred()); \
+  TokenException::set_last_exception(TokenException::none()); \
+} while(0);
 #else
 #define THROW(expr) (throw expr);
 #define CLEAR_LAST_EXCEPTION(expr) ((void)0);
