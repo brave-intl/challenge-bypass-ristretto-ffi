@@ -41,6 +41,7 @@ cargo_build("challenge_bypass_ristretto") {
     "src/lib.rs",
   ]
 
+  rust_flags = challenge_bypass_rust_flags
   output = challenge_bypass_lib_path
 
   manifest_path = "Cargo.toml"
