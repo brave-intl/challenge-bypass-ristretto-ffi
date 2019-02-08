@@ -1,5 +1,12 @@
 declare_args() {
   challenge_bypass_shared_lib = is_mac
+  challenge_bypass_rust_flags = ""
+}
+
+if (challenge_bypass_shared_lib && challenge_bypass_rust_flags == "") {
+  if (!is_component_build) {
+    challenge_bypass_rust_flags = "-C link-args=-Wl,-install_name,@loader_path/../../Libraries/libchallenge_bypass_ristretto.dylib"
+  }
 }
 
 challenge_bypass_build_path = "$root_gen_dir/challenge_bypass_ristretto/out"
