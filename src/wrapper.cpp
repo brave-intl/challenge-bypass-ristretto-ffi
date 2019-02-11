@@ -48,8 +48,10 @@ TokenException* GetOrCreateLastException() {
   static base::NoDestructor<base::ThreadLocalPointer<TokenException>>
       last_exception;
   TokenException* token_exception = last_exception.get()->Get();
-  if (!token_exception)
-    last_exception.get()->Set(new TokenException(""));
+  if (!token_exception) {
+    token_exception = new TokenException("");
+    last_exception.get()->Set(token_exception);
+  }
   return token_exception;
 }
 
