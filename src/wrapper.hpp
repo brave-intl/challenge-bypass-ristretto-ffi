@@ -40,7 +40,7 @@ class TokenPreimage {
   TokenPreimage(const TokenPreimage&);
   ~TokenPreimage();
   static TokenPreimage decode_base64(const std::string);
-  std::string encode_base64();
+  std::string encode_base64() const;
 
  private:
   std::shared_ptr<C_TokenPreimage> raw;
@@ -56,11 +56,13 @@ class BlindedToken {
   BlindedToken(const BlindedToken&);
   ~BlindedToken();
   static BlindedToken decode_base64(const std::string);
-  std::string encode_base64();
+  std::string encode_base64() const;
 
  private:
   std::shared_ptr<C_BlindedToken> raw;
 };
+
+bool operator==(const BlindedToken& lhs, const BlindedToken& rhs);
 
 class SignedToken {
   friend class Token;
@@ -72,11 +74,13 @@ class SignedToken {
   SignedToken(const SignedToken&);
   ~SignedToken();
   static SignedToken decode_base64(const std::string);
-  std::string encode_base64();
+  std::string encode_base64() const;
 
  private:
   std::shared_ptr<C_SignedToken> raw;
 };
+
+bool operator==(const SignedToken& lhs, const SignedToken& rhs);
 
 class VerificationSignature {
   friend class VerificationKey;
@@ -86,7 +90,7 @@ class VerificationSignature {
   VerificationSignature(const VerificationSignature&);
   ~VerificationSignature();
   static VerificationSignature decode_base64(const std::string);
-  std::string encode_base64();
+  std::string encode_base64() const;
 
  private:
   std::shared_ptr<C_VerificationSignature> raw;
@@ -109,14 +113,16 @@ class UnblindedToken {
   UnblindedToken(std::shared_ptr<C_UnblindedToken>);
   UnblindedToken(const UnblindedToken&);
   ~UnblindedToken();
-  VerificationKey derive_verification_key();
-  TokenPreimage preimage();
+  VerificationKey derive_verification_key() const;
+  TokenPreimage preimage() const;
   static UnblindedToken decode_base64(const std::string);
-  std::string encode_base64();
+  std::string encode_base64() const;
 
  private:
   std::shared_ptr<C_UnblindedToken> raw;
 };
+
+bool operator==(const UnblindedToken& lhs, const UnblindedToken& rhs);
 
 class Token {
   friend class BatchDLEQProof;
@@ -128,11 +134,13 @@ class Token {
   static Token random();
   BlindedToken blind();
   static Token decode_base64(const std::string);
-  std::string encode_base64();
+  std::string encode_base64() const;
 
  private:
   std::shared_ptr<C_Token> raw;
 };
+
+bool operator==(const Token& lhs, const Token& rhs);
 
 class PublicKey {
   friend class DLEQProof;
@@ -143,7 +151,7 @@ class PublicKey {
   PublicKey(const PublicKey&);
   ~PublicKey();
   static PublicKey decode_base64(const std::string);
-  std::string encode_base64();
+  std::string encode_base64() const;
 
  private:
   std::shared_ptr<C_PublicKey> raw;
@@ -158,11 +166,11 @@ class SigningKey {
   SigningKey(const SigningKey&);
   ~SigningKey();
   static SigningKey random();
-  SignedToken sign(BlindedToken);
+  SignedToken sign(BlindedToken) const;
   UnblindedToken rederive_unblinded_token(TokenPreimage);
   PublicKey public_key();
   static SigningKey decode_base64(const std::string);
-  std::string encode_base64();
+  std::string encode_base64() const;
 
  private:
   std::shared_ptr<C_SigningKey> raw;
@@ -176,7 +184,7 @@ class DLEQProof {
   ~DLEQProof();
   bool verify(BlindedToken, SignedToken, PublicKey);
   static DLEQProof decode_base64(const std::string);
-  std::string encode_base64();
+  std::string encode_base64() const;
 
  private:
   std::shared_ptr<C_DLEQProof> raw;
@@ -193,7 +201,7 @@ class BatchDLEQProof {
   bool verify(std::vector<BlindedToken>, std::vector<SignedToken>, PublicKey);
   std::vector<UnblindedToken> verify_and_unblind(std::vector<Token>, std::vector<BlindedToken>, std::vector<SignedToken>, PublicKey);
   static BatchDLEQProof decode_base64(const std::string);
-  std::string encode_base64();
+  std::string encode_base64() const;
 
  private:
   std::shared_ptr<C_BatchDLEQProof> raw;
