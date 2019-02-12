@@ -7,14 +7,21 @@ include_guard = "_CHALLENGE_BYPASS_RISTRETTO_LIB_H"
 # bindings
 parse_deps = true
 # A black list of crate names that are not allowed to be parsed
-exclude = ["generic_array", "rand", "curve25519_dalek", "sha2"]
+exclude = ["generic_array", "rand", "curve25519_dalek", "sha2", "merlin", "serde", "blobby", "serde_derive"]
 
 [parse.expand]
 # A list of crate names that should be run through `cargo expand` before
 # parsing to expand any macros
 crates = ["challenge-bypass-ristretto-ffi"]
+all_features = false
 default_features = false
+features = ["cbindgen"]
 
 [export]
 # A prefix to add before the name of every item
 prefix = "C_"
+
+[defines]
+# A rule for generating `#ifdef`s for matching `#[cfg]`ed items,
+# e.g. `#[cfg(foo = "bar")] ...` -> `#if defined(FOO_IS_BAR) ... #endif`
+"feature = merlin" = "MERLIN_FEATURE_ENABLED"
