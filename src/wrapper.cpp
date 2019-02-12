@@ -169,6 +169,10 @@ namespace challenge_bypass_ristretto {
   bool operator==(const Token& lhs, const Token& rhs) {
     return lhs.encode_base64() == rhs.encode_base64();
   }
+
+  bool operator!=(const Token& lhs, const Token& rhs) {
+    return lhs.encode_base64() != rhs.encode_base64();
+  }
 }
 
 // class BlindedToken
@@ -197,6 +201,10 @@ namespace challenge_bypass_ristretto {
   bool operator==(const BlindedToken& lhs, const BlindedToken& rhs) {
     return lhs.encode_base64() == rhs.encode_base64();
   }
+
+  bool operator!=(const BlindedToken& lhs, const BlindedToken& rhs) {
+    return lhs.encode_base64() != rhs.encode_base64();
+  }
 }
 
 // class SignedToken
@@ -224,6 +232,10 @@ namespace challenge_bypass_ristretto {
 
   bool operator==(const SignedToken& lhs, const SignedToken& rhs) {
     return lhs.encode_base64() == rhs.encode_base64();
+  }
+
+  bool operator!=(const SignedToken& lhs, const SignedToken& rhs) {
+    return lhs.encode_base64() != rhs.encode_base64();
   }
 }
 
@@ -286,6 +298,10 @@ namespace challenge_bypass_ristretto {
 
   bool operator==(const UnblindedToken& lhs, const UnblindedToken& rhs) {
     return lhs.encode_base64() == rhs.encode_base64();
+  }
+
+  bool operator!=(const UnblindedToken& lhs, const UnblindedToken& rhs) {
+    return lhs.encode_base64() != rhs.encode_base64();
   }
 }
 

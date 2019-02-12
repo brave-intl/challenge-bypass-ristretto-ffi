@@ -63,6 +63,7 @@ class BlindedToken {
 };
 
 bool operator==(const BlindedToken& lhs, const BlindedToken& rhs);
+bool operator!=(const BlindedToken& lhs, const BlindedToken& rhs);
 
 class SignedToken {
   friend class Token;
@@ -81,6 +82,7 @@ class SignedToken {
 };
 
 bool operator==(const SignedToken& lhs, const SignedToken& rhs);
+bool operator!=(const SignedToken& lhs, const SignedToken& rhs);
 
 class VerificationSignature {
   friend class VerificationKey;
@@ -123,6 +125,7 @@ class UnblindedToken {
 };
 
 bool operator==(const UnblindedToken& lhs, const UnblindedToken& rhs);
+bool operator!=(const UnblindedToken& lhs, const UnblindedToken& rhs);
 
 class Token {
   friend class BatchDLEQProof;
@@ -141,6 +144,7 @@ class Token {
 };
 
 bool operator==(const Token& lhs, const Token& rhs);
+bool operator!=(const Token& lhs, const Token& rhs);
 
 class PublicKey {
   friend class DLEQProof;
