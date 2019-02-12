@@ -32,7 +32,7 @@ extern "C" {
 #define CLEAR_LAST_EXCEPTION(expr) do { \
   DCHECK(!exception_occurred()); \
   TokenException::set_last_exception(TokenException::none()); \
-} while(0);
+} while(0)
 #else
 #define THROW(expr) (throw expr);
 #define CLEAR_LAST_EXCEPTION(expr) ((void)0);
