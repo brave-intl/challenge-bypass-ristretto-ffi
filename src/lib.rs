@@ -23,11 +23,13 @@ use sha2::Sha512;
 
 type HmacSha512 = Hmac<Sha512>;
 
+#[cfg(not(feature = "cbindgen"))]
 thread_local! {
     static LAST_ERROR: RefCell<Option<Box<Error>>> = RefCell::new(None);
 }
 
 /// Update the last error that occured.
+#[cfg(not(feature = "cbindgen"))]
 fn update_last_error<T>(err: T)
 where
     T: Into<Box<Error>>,

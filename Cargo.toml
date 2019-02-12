@@ -17,6 +17,9 @@ crate-type = [
 ]
 name = "challenge_bypass_ristretto"
 
+[features]
+cbindgen = []
+
 [profile.dev]
 panic = "abort"
 

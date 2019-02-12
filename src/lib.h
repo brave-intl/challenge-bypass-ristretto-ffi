@@ -6,17 +6,21 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#if !defined(MERLIN_FEATURE_ENABLED)
 /**
  * A `BatchDLEQProof` is a proof of the equivalence of the discrete logarithm between a common
  * pair of points and one or more other pairs of points.
  */
 typedef struct C_BatchDLEQProof C_BatchDLEQProof;
+#endif
 
+#if defined(MERLIN_FEATURE_ENABLED)
 /**
  * A `BatchDLEQProof` is a proof of the equivalence of the discrete logarithm between a common
  * pair of points and one or more other pairs of points.
  */
 typedef struct C_BatchDLEQProof C_BatchDLEQProof;
+#endif
 
 /**
  * A `BlindedToken` is sent to the server for signing.
@@ -26,15 +30,19 @@ typedef struct C_BatchDLEQProof C_BatchDLEQProof;
  */
 typedef struct C_BlindedToken C_BlindedToken;
 
+#if !defined(MERLIN_FEATURE_ENABLED)
 /**
  * A `DLEQProof` is a proof of the equivalence of the discrete logarithm between two pairs of points.
  */
 typedef struct C_DLEQProof C_DLEQProof;
+#endif
 
+#if defined(MERLIN_FEATURE_ENABLED)
 /**
  * A `DLEQProof` is a proof of the equivalence of the discrete logarithm between two pairs of points.
  */
 typedef struct C_DLEQProof C_DLEQProof;
+#endif
 
 /**
  * A `PublicKey` is a committment by the server to a particular `SigningKey`.
