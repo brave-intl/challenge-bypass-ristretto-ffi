@@ -10,24 +10,26 @@ extern "C" {
 }
 
 namespace challenge_bypass_ristretto {
+
 class TokenException : std::exception {
  public:
-  TokenException(const std::string&);
+  TokenException(const std::string& msg);
   ~TokenException() override;
-  const char* what() const throw() override;
   static TokenException last_error(std::string msg);
+  const char* what() const noexcept override;
 #ifdef NO_CXXEXCEPTIONS
-  static TokenException none();
-  bool is_empty();
+  static const TokenException& none();
+  static void set_last_exception(const TokenException& exception);
+  bool is_empty() const;
 #endif
 
  private:
-  std::string msg;
+  std::string msg_;
 };
 
 #ifdef NO_CXXEXCEPTIONS
 bool exception_occurred();
-TokenException get_last_exception();
+const TokenException get_last_exception();
 #endif
 
 class TokenPreimage {
@@ -38,7 +40,7 @@ class TokenPreimage {
   TokenPreimage(const TokenPreimage&);
   ~TokenPreimage();
   static TokenPreimage decode_base64(const std::string);
-  std::string encode_base64();
+  std::string encode_base64() const;
 
  private:
   std::shared_ptr<C_TokenPreimage> raw;
@@ -54,11 +56,14 @@ class BlindedToken {
   BlindedToken(const BlindedToken&);
   ~BlindedToken();
   static BlindedToken decode_base64(const std::string);
-  std::string encode_base64();
+  std::string encode_base64() const;
 
  private:
   std::shared_ptr<C_BlindedToken> raw;
 };
+
+bool operator==(const BlindedToken& lhs, const BlindedToken& rhs);
+bool operator!=(const BlindedToken& lhs, const BlindedToken& rhs);
 
 class SignedToken {
   friend class Token;
@@ -70,11 +75,14 @@ class SignedToken {
   SignedToken(const SignedToken&);
   ~SignedToken();
   static SignedToken decode_base64(const std::string);
-  std::string encode_base64();
+  std::string encode_base64() const;
 
  private:
   std::shared_ptr<C_SignedToken> raw;
 };
+
+bool operator==(const SignedToken& lhs, const SignedToken& rhs);
+bool operator!=(const SignedToken& lhs, const SignedToken& rhs);
 
 class VerificationSignature {
   friend class VerificationKey;
@@ -84,7 +92,7 @@ class VerificationSignature {
   VerificationSignature(const VerificationSignature&);
   ~VerificationSignature();
   static VerificationSignature decode_base64(const std::string);
-  std::string encode_base64();
+  std::string encode_base64() const;
 
  private:
   std::shared_ptr<C_VerificationSignature> raw;
@@ -107,29 +115,36 @@ class UnblindedToken {
   UnblindedToken(std::shared_ptr<C_UnblindedToken>);
   UnblindedToken(const UnblindedToken&);
   ~UnblindedToken();
-  VerificationKey derive_verification_key();
-  TokenPreimage preimage();
+  VerificationKey derive_verification_key() const;
+  TokenPreimage preimage() const;
   static UnblindedToken decode_base64(const std::string);
-  std::string encode_base64();
+  std::string encode_base64() const;
 
  private:
   std::shared_ptr<C_UnblindedToken> raw;
 };
 
+bool operator==(const UnblindedToken& lhs, const UnblindedToken& rhs);
+bool operator!=(const UnblindedToken& lhs, const UnblindedToken& rhs);
+
 class Token {
+  friend class BatchDLEQProof;
+
  public:
   Token(std::shared_ptr<C_Token>);
   Token(const Token&);
   ~Token();
   static Token random();
   BlindedToken blind();
-  UnblindedToken unblind(SignedToken);
   static Token decode_base64(const std::string);
-  std::string encode_base64();
+  std::string encode_base64() const;
 
  private:
   std::shared_ptr<C_Token> raw;
 };
+
+bool operator==(const Token& lhs, const Token& rhs);
+bool operator!=(const Token& lhs, const Token& rhs);
 
 class PublicKey {
   friend class DLEQProof;
@@ -140,7 +155,7 @@ class PublicKey {
   PublicKey(const PublicKey&);
   ~PublicKey();
   static PublicKey decode_base64(const std::string);
-  std::string encode_base64();
+  std::string encode_base64() const;
 
  private:
   std::shared_ptr<C_PublicKey> raw;
@@ -155,11 +170,11 @@ class SigningKey {
   SigningKey(const SigningKey&);
   ~SigningKey();
   static SigningKey random();
-  SignedToken sign(BlindedToken);
+  SignedToken sign(BlindedToken) const;
   UnblindedToken rederive_unblinded_token(TokenPreimage);
   PublicKey public_key();
   static SigningKey decode_base64(const std::string);
-  std::string encode_base64();
+  std::string encode_base64() const;
 
  private:
   std::shared_ptr<C_SigningKey> raw;
@@ -173,7 +188,7 @@ class DLEQProof {
   ~DLEQProof();
   bool verify(BlindedToken, SignedToken, PublicKey);
   static DLEQProof decode_base64(const std::string);
-  std::string encode_base64();
+  std::string encode_base64() const;
 
  private:
   std::shared_ptr<C_DLEQProof> raw;
@@ -188,12 +203,14 @@ class BatchDLEQProof {
                  SigningKey);
   ~BatchDLEQProof();
   bool verify(std::vector<BlindedToken>, std::vector<SignedToken>, PublicKey);
+  std::vector<UnblindedToken> verify_and_unblind(std::vector<Token>, std::vector<BlindedToken>, std::vector<SignedToken>, PublicKey);
   static BatchDLEQProof decode_base64(const std::string);
-  std::string encode_base64();
+  std::string encode_base64() const;
 
  private:
   std::shared_ptr<C_BatchDLEQProof> raw;
 };
+
 }  // namespace challenge_bypass_ristretto
 
 #endif /* _CHALLENGE_BYPASS_RISTRETTO_WRAPPER_HPP */

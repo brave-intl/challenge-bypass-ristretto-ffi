@@ -15,6 +15,9 @@ endif
 
 all: examples/cpp.out
 
+src/lib.h: src/lib.rs
+	cbindgen -o src/lib.h
+
 examples/cpp.out: target/debug/libchallenge_bypass_ristretto.a examples/wrapper.o examples/cpp/main.cpp 
 	g++ $(CFLAGS) -std=gnu++0x examples/cpp/main.cpp examples/wrapper.o ./target/debug/libchallenge_bypass_ristretto.a -I ./src -lpthread -ldl -o examples/cpp.out
 

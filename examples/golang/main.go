@@ -54,26 +54,25 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	// server creates a DLEQ proof and returns it and the signed token to the client
-	proof, err := crypto.NewDLEQProof(&serverBlindedToken, signedToken, sKey)
+	serverBlindedTokens := []*crypto.BlindedToken{&serverBlindedToken}
+	signedTokens := []*crypto.SignedToken{signedToken}
+
+	// server creates a batch DLEQ proof and returns it and the signed token to the client
+	proof, err := crypto.NewBatchDLEQProof(serverBlindedTokens, signedTokens, sKey)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	// client verifies the DLEQ proof
-	result, err := proof.Verify(blindedToken, signedToken, pKey)
+	tokens := []*crypto.Token{token}
+	blindedTokens := []*crypto.BlindedToken{blindedToken}
+
+	// client verifies the DLEQ proof and unblinds the token
+	unblindedTokens, err := proof.VerifyAndUnblind(tokens, blindedTokens, signedTokens, pKey)
 	if err != nil {
 		log.Fatalln(err)
-	}
-	if !result {
-		log.Fatalln("Proof should have verified")
 	}
 
-	// client uses the blinding scalar to unblind the returned signed token
-	clientUnblindedToken, err := token.Unblind(signedToken)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	clientUnblindedToken := unblindedTokens[0]
 
 	// Redemption
 
@@ -95,7 +94,7 @@ func main() {
 	servervKey := serverUnblindedToken.DeriveVerificationKey()
 
 	// server signs the same message using the shared key and compares the client signature to it's own
-	result, err = servervKey.Verify(clientSig, "test message")
+	result, err := servervKey.Verify(clientSig, "test message")
 	if err != nil {
 		log.Fatalln(err)
 	}
