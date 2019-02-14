@@ -1,11 +1,14 @@
 declare_args() {
-  challenge_bypass_shared_lib = is_mac
+  use_challenge_bypass_shared_lib = is_mac
   challenge_bypass_rust_flags = ""
 }
 
-if (challenge_bypass_shared_lib && challenge_bypass_rust_flags == "") {
+challenge_bypass_shared_lib_install_name = ""
+
+if (use_challenge_bypass_shared_lib && challenge_bypass_rust_flags == "") {
   if (!is_component_build) {
-    challenge_bypass_rust_flags = "-C link-args=-Wl,-install_name,@loader_path/../../Libraries/libchallenge_bypass_ristretto.dylib"
+    challenge_bypass_shared_lib_install_name = "@loader_path/../../Libraries/libchallenge_bypass_ristretto.dylib"
+    challenge_bypass_rust_flags = "-C link-args=-Wl,-install_name,$challenge_bypass_shared_lib_install_name"
   }
 }
 
@@ -62,8 +65,8 @@ if (is_win) {
   challenge_bypass_lib_path += "/challenge_bypass_ristretto.lib"
 } else if (is_linux || is_android || is_ios) {
   challenge_bypass_lib_path += "/libchallenge_bypass_ristretto.a"
-} else if (is_linux || is_android || is_ios || is_mac) {
-  if (challenge_bypass_shared_lib) {
+} else if (is_mac) {
+  if (use_challenge_bypass_shared_lib) {
     challenge_bypass_lib_path += "/libchallenge_bypass_ristretto.dylib"
   } else {
     challenge_bypass_lib_path += "/libchallenge_bypass_ristretto.a"
