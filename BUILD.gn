@@ -4,6 +4,7 @@
 
 import("config.gni")
 import("//brave/build/cargo.gni")
+import("//brave/test/testing.gni")
 
 config("external_config") {
   include_dirs = [ "src" ]
@@ -31,6 +32,14 @@ source_set("challenge_bypass_ristretto_ffi") {
     libs += [
       "Security.framework"
     ]
+  }
+}
+
+
+if (challenge_bypass_shared_lib_install_name != "") {
+  fix_testing_install_name("test_install_name") {
+    current_path = challenge_bypass_shared_lib_install_name
+    new_path = "@executable_path/" + rebase_path(challenge_bypass_lib_path, root_build_dir)
   }
 }
 
