@@ -41,6 +41,8 @@ if (challenge_bypass_shared_lib_install_name != "") {
     current_path = challenge_bypass_shared_lib_install_name
     new_path = "@executable_path/" + rebase_path(challenge_bypass_lib_path, root_build_dir)
   }
+} else {
+    group("test_install_name") {}
 }
 
 cargo_build("challenge_bypass_ristretto") {
