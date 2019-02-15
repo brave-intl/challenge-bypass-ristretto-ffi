@@ -18,6 +18,7 @@ crate-type = [
 name = "challenge_bypass_ristretto"
 
 [features]
+nightly = ["challenge-bypass-ristretto/nightly"]
 cbindgen = []
 
 [profile.dev]
