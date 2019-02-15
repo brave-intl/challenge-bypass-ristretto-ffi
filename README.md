@@ -50,7 +50,7 @@ must be called after every function call and if an error occurred the
 
 # Development
 
-Working on this repository requires having nightly Rust, Go 1.11, g++, musl and valgrind to be installed.
+Working on this repository requires having Rust, Go 1.11, g++, musl and valgrind to be installed.
 Alternatively - Rust, g++ / valgrind and Docker can be used as there is a
 Dockerfile for building and testing the Golang bindings.
 
