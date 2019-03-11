@@ -21,6 +21,7 @@ challenge_bypass_target = ""
 # See https://forge.rust-lang.org/platform-support.html for possible targets
 if (is_win) {
   if (target_cpu == "x86") {
+    challenge_bypass_rust_flags += " -C target-feature=+crt-static"
     challenge_bypass_target = "i686-pc-windows-msvc"
   } else if (target_cpu == "x64") {
     challenge_bypass_target = "x86_64-pc-windows-msvc"
