@@ -411,9 +411,8 @@ func (k *VerificationKey) Sign(message string) (*VerificationSignature, error) {
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
-	cs := C.CString(message)
-	defer C.free(unsafe.Pointer(cs))
-	raw := C.verification_key_sign_sha512(k.raw, cs)
+	bytes := []byte(message)
+	raw := C.verification_key_sign_sha512(k.raw, (*C.uint8_t)(&bytes[0]), C.size_t(len(bytes)))
 	if raw == nil {
 		return nil, wrapLastError("Failed to sign message")
 	}
@@ -427,9 +426,8 @@ func (k *VerificationKey) Verify(sig *VerificationSignature, message string) (bo
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
-	cs := C.CString(message)
-	defer C.free(unsafe.Pointer(cs))
-	result := C.verification_key_invalid_sha512(k.raw, sig.raw, cs)
+	bytes := []byte(message)
+	result := C.verification_key_invalid_sha512(k.raw, sig.raw, (*C.uint8_t)(&bytes[0]), C.size_t(len(bytes)))
 	if result < 0 {
 		return false, wrapLastError("Failed to verify message signature")
 	}

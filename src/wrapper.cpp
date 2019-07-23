@@ -313,7 +313,7 @@ namespace challenge_bypass_ristretto {
 
   VerificationSignature VerificationKey::sign(const std::string message) {
     CLEAR_LAST_EXCEPTION();
-    std::shared_ptr<C_VerificationSignature> raw_verification_signature(verification_key_sign_sha512(raw.get(), message.c_str()), verification_signature_destroy);
+    std::shared_ptr<C_VerificationSignature> raw_verification_signature(verification_key_sign_sha512(raw.get(), (const uint8_t*) message.data(), message.length()), verification_signature_destroy);
     if (raw_verification_signature == nullptr) {
       THROW(TokenException::last_error("Failed to sign message"));
     }
@@ -322,7 +322,7 @@ namespace challenge_bypass_ristretto {
 
   bool VerificationKey::verify(VerificationSignature sig, const std::string message) {
     CLEAR_LAST_EXCEPTION();
-    int result = verification_key_invalid_sha512(raw.get(), sig.raw.get(), message.c_str());
+    int result = verification_key_invalid_sha512(raw.get(), sig.raw.get(), (const uint8_t*) message.data(), message.length());
     if (result < 0) {
       THROW(TokenException::last_error("Failed to verify message signature"));
     }

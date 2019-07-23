@@ -388,7 +388,8 @@ void verification_key_destroy(C_VerificationKey *key);
  */
 int verification_key_invalid_sha512(const C_VerificationKey *key,
                                     const C_VerificationSignature *sig,
-                                    const char *message);
+                                    const uint8_t *message,
+                                    uintptr_t message_length);
 
 /**
  * Take a reference to a `VerificationKey` and use it to sign a message
@@ -397,7 +398,8 @@ int verification_key_invalid_sha512(const C_VerificationKey *key,
  * destroy the `VerificationSignature` once you are done with it!
  */
 C_VerificationSignature *verification_key_sign_sha512(const C_VerificationKey *key,
-                                                      const char *message);
+                                                      const uint8_t *message,
+                                                      uintptr_t message_length);
 
 /**
  * Decode from base64 C string.

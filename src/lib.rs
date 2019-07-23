@@ -10,7 +10,7 @@ use std::cell::RefCell;
 use std::error::Error;
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int};
-use std::slice;
+use std::{slice, str};
 
 use challenge_bypass_ristretto::errors::InternalError;
 use challenge_bypass_ristretto::voprf::{
@@ -246,16 +246,17 @@ pub unsafe extern "C" fn verification_key_destroy(key: *mut VerificationKey) {
 #[no_mangle]
 pub unsafe extern "C" fn verification_key_sign_sha512(
     key: *const VerificationKey,
-    message: *const c_char,
+    message: *const u8,
+    message_length: usize,
 ) -> *mut VerificationSignature {
     if key.is_null() {
         update_last_error("Pointer to verification key was null");
         return ptr::null_mut();
     }
 
-    let raw = CStr::from_ptr(message);
+    let slice = slice::from_raw_parts(message, message_length);
 
-    let message_as_str = match raw.to_str() {
+    let message_as_str = match str::from_utf8(slice) {
         Ok(s) => s,
         Err(err) => {
             update_last_error(err);
@@ -278,16 +279,17 @@ pub unsafe extern "C" fn verification_key_sign_sha512(
 pub unsafe extern "C" fn verification_key_invalid_sha512(
     key: *const VerificationKey,
     sig: *const VerificationSignature,
-    message: *const c_char,
+    message: *const u8,
+    message_length: usize,
 ) -> c_int {
     if key.is_null() || sig.is_null() {
         update_last_error("Pointer to verification key or signature was null");
         return -1;
     }
 
-    let raw = CStr::from_ptr(message);
+    let slice = slice::from_raw_parts(message, message_length);
 
-    let message_as_str = match raw.to_str() {
+    let message_as_str = match str::from_utf8(slice) {
         Ok(s) => s,
         Err(err) => {
             update_last_error(err);
@@ -675,8 +677,8 @@ mod tests {
     #[test]
     fn test_embedded_null() {
         unsafe {
-            let c_msg1 = "".as_ptr();
-            let c_msg2 = "\0hello".as_ptr();
+            let c_msg1 = "\0hello";
+            let c_msg2 = "";
 
             let key = signing_key_random();
 
@@ -685,7 +687,6 @@ mod tests {
             let signed_token = signing_key_sign(key, blinded_token);
 
             let tokens = vec![std::mem::transmute::<*mut Token, *const Token>(token)];
-            let blinded_tokens = vec![blinded_token];
             let blinded_tokens = vec![blinded_token];
             let signed_tokens = vec![signed_token];
             let mut unblinded_tokens: Vec<*mut UnblindedToken> = Vec::with_capacity(1);
@@ -697,7 +698,7 @@ mod tests {
                 key,
             );
 
-            let unblinded_token = batch_dleq_proof_invalid_or_unblind(
+            batch_dleq_proof_invalid_or_unblind(
                 proof,
                 tokens.as_ptr(),
                 blinded_tokens.as_ptr() as *const *const BlindedToken,
@@ -710,12 +711,18 @@ mod tests {
 
             let v_key = unblinded_token_derive_verification_key_sha512(unblinded_tokens[0]);
 
-            let code = verification_key_sign_sha512(v_key, c_msg1 as *const c_char);
+            let code = verification_key_sign_sha512(v_key, c_msg1.as_ptr(), c_msg1.len());
 
             assert_ne!(
-                verification_key_invalid_sha512(v_key, code, c_msg2 as *const c_char),
+                verification_key_invalid_sha512(v_key, code, c_msg2.as_ptr(), c_msg2.len()),
                 0,
                 "A different message should not validate"
+            );
+
+            assert_eq!(
+                verification_key_invalid_sha512(v_key, code, c_msg1.as_ptr(), c_msg1.len()),
+                0,
+                "Embedded nulls in the same message should validate"
             );
         }
     }
