@@ -80,7 +80,7 @@ func main() {
 	clientvKey := clientUnblindedToken.DeriveVerificationKey()
 
 	// client signs a message using the shared key
-	clientSig, err := clientvKey.Sign("test message")
+	clientSig, err := clientvKey.Sign("\x00test message")
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -94,7 +94,7 @@ func main() {
 	servervKey := serverUnblindedToken.DeriveVerificationKey()
 
 	// server signs the same message using the shared key and compares the client signature to it's own
-	result, err := servervKey.Verify(clientSig, "test message")
+	result, err := servervKey.Verify(clientSig, "\x00test message")
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -103,7 +103,7 @@ func main() {
 	}
 
 	// server signs the wrong message using the shared key and compares the client signature to it's own
-	result, err = servervKey.Verify(clientSig, "message")
+	result, err = servervKey.Verify(clientSig, "\x00message")
 	if err != nil {
 		log.Fatalln(err)
 	}

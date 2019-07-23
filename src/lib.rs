@@ -667,3 +667,56 @@ pub unsafe extern "C" fn batch_dleq_proof_invalid_or_unblind(
     update_last_error("Pointer to tokens, blinded tokens, signed tokens, unblinded tokens, proof or public key was null");
     -1
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_embedded_null() {
+        unsafe {
+            let c_msg1 = "".as_ptr();
+            let c_msg2 = "\0hello".as_ptr();
+
+            let key = signing_key_random();
+
+            let token = token_random();
+            let blinded_token = token_blind(token);
+            let signed_token = signing_key_sign(key, blinded_token);
+
+            let tokens = vec![std::mem::transmute::<*mut Token, *const Token>(token)];
+            let blinded_tokens = vec![blinded_token];
+            let blinded_tokens = vec![blinded_token];
+            let signed_tokens = vec![signed_token];
+            let mut unblinded_tokens: Vec<*mut UnblindedToken> = Vec::with_capacity(1);
+
+            let proof = batch_dleq_proof_new(
+                blinded_tokens.as_ptr() as *const *const BlindedToken,
+                signed_tokens.as_ptr() as *const *const SignedToken,
+                1,
+                key,
+            );
+
+            let unblinded_token = batch_dleq_proof_invalid_or_unblind(
+                proof,
+                tokens.as_ptr(),
+                blinded_tokens.as_ptr() as *const *const BlindedToken,
+                signed_tokens.as_ptr() as *const *const SignedToken,
+                unblinded_tokens.as_mut_ptr(),
+                1,
+                signing_key_get_public_key(key),
+            );
+            unblinded_tokens.set_len(1);
+
+            let v_key = unblinded_token_derive_verification_key_sha512(unblinded_tokens[0]);
+
+            let code = verification_key_sign_sha512(v_key, c_msg1 as *const c_char);
+
+            assert_ne!(
+                verification_key_invalid_sha512(v_key, code, c_msg2 as *const c_char),
+                0,
+                "A different message should not validate"
+            );
+        }
+    }
+}
