@@ -80,10 +80,11 @@ macro_rules! impl_base64 {
         /// If something goes wrong, this will return a null pointer. Don't forget to
         /// destroy the returned pointer once you are done with it!
         #[no_mangle]
-        pub unsafe extern "C" fn $de(s: *const c_char) -> *mut $t {
+        pub unsafe extern "C" fn $de(s: *const u8, s_length: usize) -> *mut $t {
             if !s.is_null() {
-                let raw = CStr::from_ptr(s);
-                match raw.to_str() {
+                let slice = slice::from_raw_parts(s, s_length);
+
+                match str::from_utf8(slice) {
                     Ok(s_as_str) => match $t::decode_base64(s_as_str) {
                         Ok(t) => return Box::into_raw(Box::new(t)),
                         Err(err) => update_last_error(err),
@@ -256,16 +257,7 @@ pub unsafe extern "C" fn verification_key_sign_sha512(
 
     let slice = slice::from_raw_parts(message, message_length);
 
-    let message_as_str = match str::from_utf8(slice) {
-        Ok(s) => s,
-        Err(err) => {
-            update_last_error(err);
-            return ptr::null_mut();
-        }
-    };
-    Box::into_raw(Box::new(
-        (*key).sign::<HmacSha512>(message_as_str.as_bytes()),
-    ))
+    Box::into_raw(Box::new((*key).sign::<HmacSha512>(slice)))
 }
 
 /// Take a reference to a `VerificationKey` and use it to verify an
@@ -289,14 +281,7 @@ pub unsafe extern "C" fn verification_key_invalid_sha512(
 
     let slice = slice::from_raw_parts(message, message_length);
 
-    let message_as_str = match str::from_utf8(slice) {
-        Ok(s) => s,
-        Err(err) => {
-            update_last_error(err);
-            return -1;
-        }
-    };
-    if (*key).verify::<HmacSha512>(&*sig, message_as_str.as_bytes()) {
+    if (*key).verify::<HmacSha512>(&*sig, slice) {
         0
     } else {
         1

@@ -108,7 +108,7 @@ namespace challenge_bypass_ristretto {
 
   TokenPreimage TokenPreimage::decode_base64(const std::string encoded) {
     CLEAR_LAST_EXCEPTION();
-    std::shared_ptr<C_TokenPreimage> raw_preimage(token_preimage_decode_base64(encoded.c_str()), token_preimage_destroy);
+    std::shared_ptr<C_TokenPreimage> raw_preimage(token_preimage_decode_base64((const uint8_t*) encoded.data(), encoded.length()), token_preimage_destroy);
     if (raw_preimage == nullptr) {
       THROW(TokenException::last_error("Failed to decode token preimage"));
     }
@@ -151,7 +151,7 @@ namespace challenge_bypass_ristretto {
 
   Token Token::decode_base64(const std::string encoded) {
     CLEAR_LAST_EXCEPTION();
-    std::shared_ptr<C_Token> raw_tok(token_decode_base64(encoded.c_str()), token_destroy);
+    std::shared_ptr<C_Token> raw_tok(token_decode_base64((const uint8_t*) encoded.data(), encoded.length()), token_destroy);
     if (raw_tok == nullptr) {
       THROW(TokenException::last_error("Failed to decode token"));
     }
@@ -183,7 +183,7 @@ namespace challenge_bypass_ristretto {
 
   BlindedToken BlindedToken::decode_base64(const std::string encoded) {
     CLEAR_LAST_EXCEPTION();
-    std::shared_ptr<C_BlindedToken> raw_blinded(blinded_token_decode_base64(encoded.c_str()), blinded_token_destroy);
+    std::shared_ptr<C_BlindedToken> raw_blinded(blinded_token_decode_base64((const uint8_t*) encoded.data(), encoded.length()), blinded_token_destroy);
     if (raw_blinded == nullptr) {
       THROW(TokenException::last_error("Failed to decode blinded token"));
     }
@@ -215,7 +215,7 @@ namespace challenge_bypass_ristretto {
 
   SignedToken SignedToken::decode_base64(const std::string encoded) {
     CLEAR_LAST_EXCEPTION();
-    std::shared_ptr<C_SignedToken> raw_signed(signed_token_decode_base64(encoded.c_str()), signed_token_destroy);
+    std::shared_ptr<C_SignedToken> raw_signed(signed_token_decode_base64((const uint8_t*) encoded.data(), encoded.length()), signed_token_destroy);
     if (raw_signed == nullptr) {
       THROW(TokenException::last_error("Failed to decode signed token"));
     }
@@ -247,7 +247,7 @@ namespace challenge_bypass_ristretto {
 
   VerificationSignature VerificationSignature::decode_base64(const std::string encoded) {
     CLEAR_LAST_EXCEPTION();
-    std::shared_ptr<C_VerificationSignature> raw_sig(verification_signature_decode_base64(encoded.c_str()), verification_signature_destroy);
+    std::shared_ptr<C_VerificationSignature> raw_sig(verification_signature_decode_base64((const uint8_t*) encoded.data(), encoded.length()), verification_signature_destroy);
     if (raw_sig == nullptr) {
       THROW(TokenException::last_error("Failed to decode verification signature"));
     }
@@ -281,7 +281,7 @@ namespace challenge_bypass_ristretto {
 
   UnblindedToken UnblindedToken::decode_base64(const std::string encoded) {
     CLEAR_LAST_EXCEPTION();
-    std::shared_ptr<C_UnblindedToken> raw_unblinded(unblinded_token_decode_base64(encoded.c_str()), unblinded_token_destroy);
+    std::shared_ptr<C_UnblindedToken> raw_unblinded(unblinded_token_decode_base64((const uint8_t*) encoded.data(), encoded.length()), unblinded_token_destroy);
     if (raw_unblinded == nullptr) {
       THROW(TokenException::last_error("Failed to decode unblinded token"));
     }
@@ -367,7 +367,7 @@ namespace challenge_bypass_ristretto {
 
   SigningKey SigningKey::decode_base64(const std::string encoded) {
     CLEAR_LAST_EXCEPTION();
-    std::shared_ptr<C_SigningKey> raw_key(signing_key_decode_base64(encoded.c_str()), signing_key_destroy);
+    std::shared_ptr<C_SigningKey> raw_key(signing_key_decode_base64((const uint8_t*) encoded.data(), encoded.length()), signing_key_destroy);
     if (raw_key == nullptr) {
       THROW(TokenException::last_error("Failed to decode signing key"));
     }
@@ -391,7 +391,7 @@ namespace challenge_bypass_ristretto {
 
   PublicKey PublicKey::decode_base64(const std::string encoded) {
     CLEAR_LAST_EXCEPTION();
-    std::shared_ptr<C_PublicKey> raw_key(public_key_decode_base64(encoded.c_str()), public_key_destroy);
+    std::shared_ptr<C_PublicKey> raw_key(public_key_decode_base64((const uint8_t*) encoded.data(), encoded.length()), public_key_destroy);
     if (raw_key == nullptr) {
       THROW(TokenException::last_error("Failed to decode public key"));
     }
@@ -432,7 +432,7 @@ namespace challenge_bypass_ristretto {
 
   DLEQProof DLEQProof::decode_base64(const std::string encoded) {
     CLEAR_LAST_EXCEPTION();
-    std::shared_ptr<C_DLEQProof> raw_proof(dleq_proof_decode_base64(encoded.c_str()), dleq_proof_destroy);
+    std::shared_ptr<C_DLEQProof> raw_proof(dleq_proof_decode_base64((const uint8_t*) encoded.data(), encoded.length()), dleq_proof_destroy);
     if (raw_proof == nullptr) {
       THROW(TokenException::last_error("Failed to decode DLEQ proof"));
     }
@@ -539,7 +539,7 @@ namespace challenge_bypass_ristretto {
 
   BatchDLEQProof BatchDLEQProof::decode_base64(const std::string encoded) {
     CLEAR_LAST_EXCEPTION();
-    std::shared_ptr<C_BatchDLEQProof> raw_proof(batch_dleq_proof_decode_base64(encoded.c_str()), batch_dleq_proof_destroy);
+    std::shared_ptr<C_BatchDLEQProof> raw_proof(batch_dleq_proof_decode_base64((const uint8_t*) encoded.data(), encoded.length()), batch_dleq_proof_destroy);
     if (raw_proof == nullptr) {
       THROW(TokenException::last_error("Failed to decode batch DLEQ proof"));
     }
