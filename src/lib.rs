@@ -8,7 +8,7 @@ extern crate sha2;
 use core::ptr;
 use std::cell::RefCell;
 use std::error::Error;
-use std::ffi::{CStr, CString};
+use std::ffi::CString;
 use std::os::raw::{c_char, c_int};
 use std::{slice, str};
 
@@ -25,14 +25,14 @@ type HmacSha512 = Hmac<Sha512>;
 
 #[cfg(not(feature = "cbindgen"))]
 thread_local! {
-    static LAST_ERROR: RefCell<Option<Box<Error>>> = RefCell::new(None);
+    static LAST_ERROR: RefCell<Option<Box<dyn Error>>> = RefCell::new(None);
 }
 
 /// Update the last error that occured.
 #[cfg(not(feature = "cbindgen"))]
 fn update_last_error<T>(err: T)
 where
-    T: Into<Box<Error>>,
+    T: Into<Box<dyn Error>>,
 {
     LAST_ERROR.with(|prev| {
         *prev.borrow_mut() = Some(err.into());
