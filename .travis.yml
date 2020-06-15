@@ -13,12 +13,15 @@ matrix:
     - name: "Rustfmt and Clippy"
       os: linux
       rust: nightly-2018-12-06
+      cache: cargo # cache cargo-audit once installed
       before_script:
         - rustup component add rustfmt
         - rustup component add clippy
+        - cargo install --force cargo-audit
       script:
         - cargo fmt -- --check
         - cargo clippy
+        - cargo audit
     - name: "Linux Build and C++ Example"
       os: linux
       rust: nightly
