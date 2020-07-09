@@ -12,7 +12,7 @@ matrix:
         - make go-docker-test 
     - name: "Rustfmt and Clippy"
       os: linux
-      rust: nightly-2018-12-06
+      rust: stable
       cache: cargo # cache cargo-audit once installed
       before_script:
         - rustup component add rustfmt
@@ -24,7 +24,7 @@ matrix:
         - cargo audit
     - name: "Linux Build, Test and C++ Example"
       os: linux
-      rust: nightly
+      rust: stable
       before_script:
         - sudo apt-get update
         - DEBIAN_FRONTEND=noninteractive sudo apt-get install -y valgrind
@@ -35,7 +35,7 @@ matrix:
         - valgrind --leak-check=yes --error-exitcode=1 ./examples/cpp.out
     - name: "Linux Build and C++ Example - NO_CXXEXCEPTIONS"
       os: linux
-      rust: nightly
+      rust: stable
       env:
         - NO_CXXEXCEPTIONS=1
       before_script:
@@ -47,7 +47,7 @@ matrix:
         - valgrind --leak-check=yes --error-exitcode=1 ./examples/cpp.out
     - name: "Linux Build and C++ Example - NO_CXXEXCEPTIONS NDEBUG"
       os: linux
-      rust: nightly
+      rust: stable
       env:
         - NO_CXXEXCEPTIONS=1
         - NDEBUG=1
@@ -60,19 +60,19 @@ matrix:
         - valgrind --leak-check=yes --error-exitcode=1 ./examples/cpp.out
     - name: "OSX Build"
       os: osx
-      rust: nightly
+      rust: stable
       script:
         - cargo build
         - make examples/cpp.out
         - ./examples/cpp.out
     - name: "Windows Build"
       os: windows
-      rust: nightly
+      rust: stable
       script:
         - cargo build
     - name: "Android Build"
       os: linux
-      rust: nightly
+      rust: stable
       before_script:
         - rustup target add arm-linux-androideabi
         - wget https://dl.google.com/android/repository/android-ndk-r18b-linux-x86_64.zip -O ndk.zip
