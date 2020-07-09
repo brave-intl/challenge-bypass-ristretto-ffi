@@ -99,7 +99,7 @@ typedef struct C_VerificationSignature C_VerificationSignature;
  * If something goes wrong, this will return a null pointer. Don't forget to
  * destroy the returned pointer once you are done with it!
  */
-C_BatchDLEQProof *batch_dleq_proof_decode_base64(const char *s);
+C_BatchDLEQProof *batch_dleq_proof_decode_base64(const uint8_t *s, uintptr_t s_length);
 
 /**
  * Destroy a `BatchDLEQProof` once you are done with it.
@@ -152,7 +152,7 @@ C_BatchDLEQProof *batch_dleq_proof_new(const C_BlindedToken *const *blinded_toke
  * If something goes wrong, this will return a null pointer. Don't forget to
  * destroy the returned pointer once you are done with it!
  */
-C_BlindedToken *blinded_token_decode_base64(const char *s);
+C_BlindedToken *blinded_token_decode_base64(const uint8_t *s, uintptr_t s_length);
 
 /**
  * Destroy a `BlindedToken` once you are done with it.
@@ -174,7 +174,7 @@ void c_char_destroy(char *s);
  * If something goes wrong, this will return a null pointer. Don't forget to
  * destroy the returned pointer once you are done with it!
  */
-C_DLEQProof *dleq_proof_decode_base64(const char *s);
+C_DLEQProof *dleq_proof_decode_base64(const uint8_t *s, uintptr_t s_length);
 
 /**
  * Destroy a `DLEQProof` once you are done with it.
@@ -216,7 +216,7 @@ char *last_error_message(void);
  * If something goes wrong, this will return a null pointer. Don't forget to
  * destroy the returned pointer once you are done with it!
  */
-C_PublicKey *public_key_decode_base64(const char *s);
+C_PublicKey *public_key_decode_base64(const uint8_t *s, uintptr_t s_length);
 
 /**
  * Destroy a `PublicKey` once you are done with it.
@@ -233,7 +233,7 @@ char *public_key_encode_base64(const C_PublicKey *t);
  * If something goes wrong, this will return a null pointer. Don't forget to
  * destroy the returned pointer once you are done with it!
  */
-C_SignedToken *signed_token_decode_base64(const char *s);
+C_SignedToken *signed_token_decode_base64(const uint8_t *s, uintptr_t s_length);
 
 /**
  * Destroy a `SignedToken` once you are done with it.
@@ -250,7 +250,7 @@ char *signed_token_encode_base64(const C_SignedToken *t);
  * If something goes wrong, this will return a null pointer. Don't forget to
  * destroy the returned pointer once you are done with it!
  */
-C_SigningKey *signing_key_decode_base64(const char *s);
+C_SigningKey *signing_key_decode_base64(const uint8_t *s, uintptr_t s_length);
 
 /**
  * Destroy a `SigningKey` once you are done with it.
@@ -305,7 +305,7 @@ C_BlindedToken *token_blind(const C_Token *token);
  * If something goes wrong, this will return a null pointer. Don't forget to
  * destroy the returned pointer once you are done with it!
  */
-C_Token *token_decode_base64(const char *s);
+C_Token *token_decode_base64(const uint8_t *s, uintptr_t s_length);
 
 /**
  * Destroy a `Token` once you are done with it.
@@ -322,7 +322,7 @@ char *token_encode_base64(const C_Token *t);
  * If something goes wrong, this will return a null pointer. Don't forget to
  * destroy the returned pointer once you are done with it!
  */
-C_TokenPreimage *token_preimage_decode_base64(const char *s);
+C_TokenPreimage *token_preimage_decode_base64(const uint8_t *s, uintptr_t s_length);
 
 /**
  * Destroy a `TokenPreimage` once you are done with it.
@@ -347,7 +347,7 @@ C_Token *token_random(void);
  * If something goes wrong, this will return a null pointer. Don't forget to
  * destroy the returned pointer once you are done with it!
  */
-C_UnblindedToken *unblinded_token_decode_base64(const char *s);
+C_UnblindedToken *unblinded_token_decode_base64(const uint8_t *s, uintptr_t s_length);
 
 /**
  * Take a reference to an `UnblindedToken` and use it to derive a `VerificationKey`
@@ -388,7 +388,8 @@ void verification_key_destroy(C_VerificationKey *key);
  */
 int verification_key_invalid_sha512(const C_VerificationKey *key,
                                     const C_VerificationSignature *sig,
-                                    const char *message);
+                                    const uint8_t *message,
+                                    uintptr_t message_length);
 
 /**
  * Take a reference to a `VerificationKey` and use it to sign a message
@@ -397,14 +398,15 @@ int verification_key_invalid_sha512(const C_VerificationKey *key,
  * destroy the `VerificationSignature` once you are done with it!
  */
 C_VerificationSignature *verification_key_sign_sha512(const C_VerificationKey *key,
-                                                      const char *message);
+                                                      const uint8_t *message,
+                                                      uintptr_t message_length);
 
 /**
  * Decode from base64 C string.
  * If something goes wrong, this will return a null pointer. Don't forget to
  * destroy the returned pointer once you are done with it!
  */
-C_VerificationSignature *verification_signature_decode_base64(const char *s);
+C_VerificationSignature *verification_signature_decode_base64(const uint8_t *s, uintptr_t s_length);
 
 /**
  * Destroy a `VerificationSignature` once you are done with it.

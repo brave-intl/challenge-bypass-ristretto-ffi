@@ -8,9 +8,9 @@ extern crate sha2;
 use core::ptr;
 use std::cell::RefCell;
 use std::error::Error;
-use std::ffi::{CStr, CString};
+use std::ffi::CString;
 use std::os::raw::{c_char, c_int};
-use std::slice;
+use std::{slice, str};
 
 use challenge_bypass_ristretto::errors::InternalError;
 use challenge_bypass_ristretto::voprf::{
@@ -25,14 +25,14 @@ type HmacSha512 = Hmac<Sha512>;
 
 #[cfg(not(feature = "cbindgen"))]
 thread_local! {
-    static LAST_ERROR: RefCell<Option<Box<Error>>> = RefCell::new(None);
+    static LAST_ERROR: RefCell<Option<Box<dyn Error>>> = RefCell::new(None);
 }
 
 /// Update the last error that occured.
 #[cfg(not(feature = "cbindgen"))]
 fn update_last_error<T>(err: T)
 where
-    T: Into<Box<Error>>,
+    T: Into<Box<dyn Error>>,
 {
     LAST_ERROR.with(|prev| {
         *prev.borrow_mut() = Some(err.into());
@@ -80,10 +80,11 @@ macro_rules! impl_base64 {
         /// If something goes wrong, this will return a null pointer. Don't forget to
         /// destroy the returned pointer once you are done with it!
         #[no_mangle]
-        pub unsafe extern "C" fn $de(s: *const c_char) -> *mut $t {
+        pub unsafe extern "C" fn $de(s: *const u8, s_length: usize) -> *mut $t {
             if !s.is_null() {
-                let raw = CStr::from_ptr(s);
-                match raw.to_str() {
+                let slice = slice::from_raw_parts(s, s_length);
+
+                match str::from_utf8(slice) {
                     Ok(s_as_str) => match $t::decode_base64(s_as_str) {
                         Ok(t) => return Box::into_raw(Box::new(t)),
                         Err(err) => update_last_error(err),
@@ -246,25 +247,17 @@ pub unsafe extern "C" fn verification_key_destroy(key: *mut VerificationKey) {
 #[no_mangle]
 pub unsafe extern "C" fn verification_key_sign_sha512(
     key: *const VerificationKey,
-    message: *const c_char,
+    message: *const u8,
+    message_length: usize,
 ) -> *mut VerificationSignature {
     if key.is_null() {
         update_last_error("Pointer to verification key was null");
         return ptr::null_mut();
     }
 
-    let raw = CStr::from_ptr(message);
+    let slice = slice::from_raw_parts(message, message_length);
 
-    let message_as_str = match raw.to_str() {
-        Ok(s) => s,
-        Err(err) => {
-            update_last_error(err);
-            return ptr::null_mut();
-        }
-    };
-    Box::into_raw(Box::new(
-        (*key).sign::<HmacSha512>(message_as_str.as_bytes()),
-    ))
+    Box::into_raw(Box::new((*key).sign::<HmacSha512>(slice)))
 }
 
 /// Take a reference to a `VerificationKey` and use it to verify an
@@ -278,23 +271,17 @@ pub unsafe extern "C" fn verification_key_sign_sha512(
 pub unsafe extern "C" fn verification_key_invalid_sha512(
     key: *const VerificationKey,
     sig: *const VerificationSignature,
-    message: *const c_char,
+    message: *const u8,
+    message_length: usize,
 ) -> c_int {
     if key.is_null() || sig.is_null() {
         update_last_error("Pointer to verification key or signature was null");
         return -1;
     }
 
-    let raw = CStr::from_ptr(message);
+    let slice = slice::from_raw_parts(message, message_length);
 
-    let message_as_str = match raw.to_str() {
-        Ok(s) => s,
-        Err(err) => {
-            update_last_error(err);
-            return -1;
-        }
-    };
-    if (*key).verify::<HmacSha512>(&*sig, message_as_str.as_bytes()) {
+    if (*key).verify::<HmacSha512>(&*sig, slice) {
         0
     } else {
         1
@@ -666,4 +653,62 @@ pub unsafe extern "C" fn batch_dleq_proof_invalid_or_unblind(
     }
     update_last_error("Pointer to tokens, blinded tokens, signed tokens, unblinded tokens, proof or public key was null");
     -1
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_embedded_null() {
+        unsafe {
+            let c_msg1 = "\0hello";
+            let c_msg2 = "";
+
+            let key = signing_key_random();
+
+            let token = token_random();
+            let blinded_token = token_blind(token);
+            let signed_token = signing_key_sign(key, blinded_token);
+
+            let tokens = vec![std::mem::transmute::<*mut Token, *const Token>(token)];
+            let blinded_tokens = vec![blinded_token];
+            let signed_tokens = vec![signed_token];
+            let mut unblinded_tokens: Vec<*mut UnblindedToken> = Vec::with_capacity(1);
+
+            let proof = batch_dleq_proof_new(
+                blinded_tokens.as_ptr() as *const *const BlindedToken,
+                signed_tokens.as_ptr() as *const *const SignedToken,
+                1,
+                key,
+            );
+
+            batch_dleq_proof_invalid_or_unblind(
+                proof,
+                tokens.as_ptr(),
+                blinded_tokens.as_ptr() as *const *const BlindedToken,
+                signed_tokens.as_ptr() as *const *const SignedToken,
+                unblinded_tokens.as_mut_ptr(),
+                1,
+                signing_key_get_public_key(key),
+            );
+            unblinded_tokens.set_len(1);
+
+            let v_key = unblinded_token_derive_verification_key_sha512(unblinded_tokens[0]);
+
+            let code = verification_key_sign_sha512(v_key, c_msg1.as_ptr(), c_msg1.len());
+
+            assert_ne!(
+                verification_key_invalid_sha512(v_key, code, c_msg2.as_ptr(), c_msg2.len()),
+                0,
+                "A different message should not validate"
+            );
+
+            assert_eq!(
+                verification_key_invalid_sha512(v_key, code, c_msg1.as_ptr(), c_msg1.len()),
+                0,
+                "Embedded nulls in the same message should validate"
+            );
+        }
+    }
 }

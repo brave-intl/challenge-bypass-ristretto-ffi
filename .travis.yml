@@ -22,7 +22,7 @@ matrix:
         - cargo fmt -- --check
         - cargo clippy
         - cargo audit
-    - name: "Linux Build and C++ Example"
+    - name: "Linux Build, Test and C++ Example"
       os: linux
       rust: nightly
       before_script:
@@ -30,6 +30,7 @@ matrix:
         - DEBIAN_FRONTEND=noninteractive sudo apt-get install -y valgrind
       script:
         - cargo build
+        - cargo test
         - make examples/cpp.out
         - valgrind --leak-check=yes --error-exitcode=1 ./examples/cpp.out
     - name: "Linux Build and C++ Example - NO_CXXEXCEPTIONS"
