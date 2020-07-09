@@ -5,12 +5,12 @@ COPY . /src
 WORKDIR /src
 RUN cargo build --target=x86_64-unknown-linux-musl 
 
-FROM golang:1.11 as go_builder
+FROM golang:1.14 as go_builder
 RUN apt-get update && apt-get install -y valgrind
 COPY --from=rust_builder /src/target/x86_64-unknown-linux-musl/debug/libchallenge_bypass_ristretto.a /usr/lib/
 COPY . /src
 WORKDIR /src
-RUN go get -u github.com/golangci/golangci-lint/cmd/golangci-lint@v1.17.1
+RUN GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.28.1
 RUN make go-lint
 RUN go build --ldflags '-extldflags "-static"' -o examples/golang.out examples/golang/main.go
 RUN go build -o examples/golang.dyn.out examples/golang/main.go
