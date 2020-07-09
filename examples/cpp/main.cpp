@@ -111,7 +111,7 @@ int main() {
   VerificationKey client_vKey = restored_unblinded_tok.derive_verification_key();
   check_exception();
   // client signs a message using the shared key
-  std::string message = "test message";
+  std::string message = std::string("\0test message", 13);
   VerificationSignature client_sig = client_vKey.sign(message);
   check_exception();
   // client sends the token preimage, signature and message to the server
@@ -139,7 +139,7 @@ int main() {
   }
   check_exception();
 
-  if (server_vKey.verify(server_sig, "foobar")) {
+  if (server_vKey.verify(server_sig, std::string("\0foobar", 7))) {
     check_exception();
     cerr<<"ERROR: wrong sigs equal\n";
     return 1;

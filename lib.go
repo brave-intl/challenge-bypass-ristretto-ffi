@@ -66,13 +66,12 @@ func (t *TokenPreimage) MarshalText() ([]byte, error) {
 }
 
 // UnmarshalText unmarshalls the token preimage from text.
-func (t *TokenPreimage) UnmarshalText(text []byte) error {
+func (t *TokenPreimage) UnmarshalText(bytes []byte) error {
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
-	cs := C.CString(string(text))
-	defer C.free(unsafe.Pointer(cs))
-	raw := C.token_preimage_decode_base64(cs)
+	raw := C.token_preimage_decode_base64((*C.uint8_t)(&bytes[0]), C.size_t(len(bytes)))
+
 	if raw == nil {
 		return wrapLastError("Failed to decode token preimage")
 	}
@@ -134,13 +133,12 @@ func (t *Token) MarshalText() ([]byte, error) {
 }
 
 // UnmarshalText unmarshalls the token from text.
-func (t *Token) UnmarshalText(text []byte) error {
+func (t *Token) UnmarshalText(bytes []byte) error {
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
-	cs := C.CString(string(text))
-	defer C.free(unsafe.Pointer(cs))
-	raw := C.token_decode_base64(cs)
+	raw := C.token_decode_base64((*C.uint8_t)(&bytes[0]), C.size_t(len(bytes)))
+
 	if raw == nil {
 		return wrapLastError("Failed to decode token")
 	}
@@ -174,13 +172,12 @@ func (t *BlindedToken) MarshalText() ([]byte, error) {
 }
 
 // UnmarshalText unmarshalls the blinded token from text.
-func (t *BlindedToken) UnmarshalText(text []byte) error {
+func (t *BlindedToken) UnmarshalText(bytes []byte) error {
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
-	cs := C.CString(string(text))
-	defer C.free(unsafe.Pointer(cs))
-	raw := C.blinded_token_decode_base64(cs)
+	raw := C.blinded_token_decode_base64((*C.uint8_t)(&bytes[0]), C.size_t(len(bytes)))
+
 	if raw == nil {
 		return wrapLastError("Failed to decoded blinded token")
 	}
@@ -214,13 +211,12 @@ func (t *SignedToken) MarshalText() ([]byte, error) {
 }
 
 // UnmarshalText unmarshalls the signed token from text.
-func (t *SignedToken) UnmarshalText(text []byte) error {
+func (t *SignedToken) UnmarshalText(bytes []byte) error {
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
-	cs := C.CString(string(text))
-	defer C.free(unsafe.Pointer(cs))
-	raw := C.signed_token_decode_base64(cs)
+	raw := C.signed_token_decode_base64((*C.uint8_t)(&bytes[0]), C.size_t(len(bytes)))
+
 	if raw == nil {
 		return wrapLastError("Failed to decode signed token")
 	}
@@ -298,13 +294,12 @@ func (k *SigningKey) MarshalText() ([]byte, error) {
 }
 
 // UnmarshalText unmarshalls the signing key from text.
-func (k *SigningKey) UnmarshalText(text []byte) error {
+func (k *SigningKey) UnmarshalText(bytes []byte) error {
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
-	cs := C.CString(string(text))
-	defer C.free(unsafe.Pointer(cs))
-	raw := C.signing_key_decode_base64(cs)
+	raw := C.signing_key_decode_base64((*C.uint8_t)(&bytes[0]), C.size_t(len(bytes)))
+
 	if raw == nil {
 		return wrapLastError("Failed to decode signing key")
 	}
@@ -380,13 +375,12 @@ func (t *UnblindedToken) MarshalText() ([]byte, error) {
 }
 
 // UnmarshalText unmarshalls the unblinded token from text.
-func (t *UnblindedToken) UnmarshalText(text []byte) error {
+func (t *UnblindedToken) UnmarshalText(bytes []byte) error {
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
-	cs := C.CString(string(text))
-	defer C.free(unsafe.Pointer(cs))
-	raw := C.unblinded_token_decode_base64(cs)
+	raw := C.unblinded_token_decode_base64((*C.uint8_t)(&bytes[0]), C.size_t(len(bytes)))
+
 	if raw == nil {
 		return wrapLastError("Failed to decode unblinded token")
 	}
@@ -411,9 +405,8 @@ func (k *VerificationKey) Sign(message string) (*VerificationSignature, error) {
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
-	cs := C.CString(message)
-	defer C.free(unsafe.Pointer(cs))
-	raw := C.verification_key_sign_sha512(k.raw, cs)
+	bytes := []byte(message)
+	raw := C.verification_key_sign_sha512(k.raw, (*C.uint8_t)(&bytes[0]), C.size_t(len(bytes)))
 	if raw == nil {
 		return nil, wrapLastError("Failed to sign message")
 	}
@@ -427,9 +420,8 @@ func (k *VerificationKey) Verify(sig *VerificationSignature, message string) (bo
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
-	cs := C.CString(message)
-	defer C.free(unsafe.Pointer(cs))
-	result := C.verification_key_invalid_sha512(k.raw, sig.raw, cs)
+	bytes := []byte(message)
+	result := C.verification_key_invalid_sha512(k.raw, sig.raw, (*C.uint8_t)(&bytes[0]), C.size_t(len(bytes)))
 	if result < 0 {
 		return false, wrapLastError("Failed to verify message signature")
 	}
@@ -461,13 +453,12 @@ func (t *VerificationSignature) MarshalText() ([]byte, error) {
 }
 
 // UnmarshalText unmarshalls the unblinded token from text.
-func (t *VerificationSignature) UnmarshalText(text []byte) error {
+func (t *VerificationSignature) UnmarshalText(bytes []byte) error {
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
-	cs := C.CString(string(text))
-	defer C.free(unsafe.Pointer(cs))
-	raw := C.verification_signature_decode_base64(cs)
+	raw := C.verification_signature_decode_base64((*C.uint8_t)(&bytes[0]), C.size_t(len(bytes)))
+
 	if raw == nil {
 		return wrapLastError("Failed to decode verification signature")
 	}
@@ -501,13 +492,12 @@ func (t *PublicKey) MarshalText() ([]byte, error) {
 }
 
 // UnmarshalText unmarshalls the unblinded token from text.
-func (t *PublicKey) UnmarshalText(text []byte) error {
+func (t *PublicKey) UnmarshalText(bytes []byte) error {
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
-	cs := C.CString(string(text))
-	defer C.free(unsafe.Pointer(cs))
-	raw := C.public_key_decode_base64(cs)
+	raw := C.public_key_decode_base64((*C.uint8_t)(&bytes[0]), C.size_t(len(bytes)))
+
 	if raw == nil {
 		return wrapLastError("Failed to decode public key")
 	}
@@ -567,13 +557,12 @@ func (proof *DLEQProof) MarshalText() ([]byte, error) {
 }
 
 // UnmarshalText unmarshalls the unblinded token from text.
-func (proof *DLEQProof) UnmarshalText(text []byte) error {
+func (proof *DLEQProof) UnmarshalText(bytes []byte) error {
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
-	cs := C.CString(string(text))
-	defer C.free(unsafe.Pointer(cs))
-	raw := C.dleq_proof_decode_base64(cs)
+	raw := C.dleq_proof_decode_base64((*C.uint8_t)(&bytes[0]), C.size_t(len(bytes)))
+
 	if raw == nil {
 		return wrapLastError("Failed to decode DLEQ proof")
 	}
@@ -712,13 +701,12 @@ func (proof *BatchDLEQProof) MarshalText() ([]byte, error) {
 }
 
 // UnmarshalText unmarshalls the unblinded token from text.
-func (proof *BatchDLEQProof) UnmarshalText(text []byte) error {
+func (proof *BatchDLEQProof) UnmarshalText(bytes []byte) error {
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
-	cs := C.CString(string(text))
-	defer C.free(unsafe.Pointer(cs))
-	raw := C.batch_dleq_proof_decode_base64(cs)
+	raw := C.batch_dleq_proof_decode_base64((*C.uint8_t)(&bytes[0]), C.size_t(len(bytes)))
+
 	if raw == nil {
 		return wrapLastError("Failed to decode batch DLEQ proof")
 	}
