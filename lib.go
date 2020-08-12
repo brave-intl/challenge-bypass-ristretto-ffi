@@ -13,7 +13,7 @@
 package challengebypassristrettoffi
 
 /*
-#cgo LDFLAGS: -L target/x86_64-unknown-linux-musl/debug -lchallenge_bypass_ristretto
+#cgo LDFLAGS: -L target/x86_64-unknown-linux-musl/debug -lchallenge_bypass_ristretto_ffi
 #include "src/lib.h"
 */
 import "C"
