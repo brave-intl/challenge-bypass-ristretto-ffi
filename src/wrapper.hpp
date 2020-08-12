@@ -9,9 +9,27 @@ extern "C" {
 #include "lib.h"
 }
 
+#if defined(CHALLENGE_BYPASS_RISTRETTO_SHARED_LIBRARY)
+#if defined(WIN32)
+#if defined(CHALLENGE_BYPASS_RISTRETTO_IMPLEMENTATION)
+#define CHALLENGE_BYPASS_RISTRETTO_EXPORT __declspec(dllexport)
+#else
+#define CHALLENGE_BYPASS_RISTRETTO_EXPORT __declspec(dllimport)
+#endif  // defined(CHALLENGE_BYPASS_RISTRETTO_IMPLEMENTATION)
+#else  // defined(WIN32)
+#if defined(CHALLENGE_BYPASS_RISTRETTO_IMPLEMENTATION)
+#define CHALLENGE_BYPASS_RISTRETTO_EXPORT __attribute__((visibility("default")))
+#else
+#define CHALLENGE_BYPASS_RISTRETTO_EXPORT
+#endif
+#endif
+#else // defined(CHALLENGE_BYPASS_RISTRETTO_SHARED_LIBRARY)
+#define CHALLENGE_BYPASS_RISTRETTO_EXPORT
+#endif
+
 namespace challenge_bypass_ristretto {
 
-class TokenException : std::exception {
+class CHALLENGE_BYPASS_RISTRETTO_EXPORT TokenException : std::exception {
  public:
   TokenException(const std::string& msg);
   ~TokenException() override;
@@ -28,11 +46,11 @@ class TokenException : std::exception {
 };
 
 #ifdef NO_CXXEXCEPTIONS
-bool exception_occurred();
-const TokenException get_last_exception();
+CHALLENGE_BYPASS_RISTRETTO_EXPORT bool exception_occurred();
+CHALLENGE_BYPASS_RISTRETTO_EXPORT const TokenException get_last_exception();
 #endif
 
-class TokenPreimage {
+class CHALLENGE_BYPASS_RISTRETTO_EXPORT TokenPreimage {
   friend class SigningKey;
 
  public:
@@ -46,7 +64,7 @@ class TokenPreimage {
   std::shared_ptr<C_TokenPreimage> raw;
 };
 
-class BlindedToken {
+class CHALLENGE_BYPASS_RISTRETTO_EXPORT BlindedToken {
   friend class SigningKey;
   friend class DLEQProof;
   friend class BatchDLEQProof;
@@ -65,7 +83,7 @@ class BlindedToken {
 bool operator==(const BlindedToken& lhs, const BlindedToken& rhs);
 bool operator!=(const BlindedToken& lhs, const BlindedToken& rhs);
 
-class SignedToken {
+class CHALLENGE_BYPASS_RISTRETTO_EXPORT SignedToken {
   friend class Token;
   friend class DLEQProof;
   friend class BatchDLEQProof;
@@ -84,7 +102,7 @@ class SignedToken {
 bool operator==(const SignedToken& lhs, const SignedToken& rhs);
 bool operator!=(const SignedToken& lhs, const SignedToken& rhs);
 
-class VerificationSignature {
+class CHALLENGE_BYPASS_RISTRETTO_EXPORT VerificationSignature {
   friend class VerificationKey;
 
  public:
@@ -98,7 +116,7 @@ class VerificationSignature {
   std::shared_ptr<C_VerificationSignature> raw;
 };
 
-class VerificationKey {
+class CHALLENGE_BYPASS_RISTRETTO_EXPORT VerificationKey {
  public:
   VerificationKey(std::shared_ptr<C_VerificationKey>);
   VerificationKey(const VerificationKey&);
@@ -110,7 +128,7 @@ class VerificationKey {
   std::shared_ptr<C_VerificationKey> raw;
 };
 
-class UnblindedToken {
+class CHALLENGE_BYPASS_RISTRETTO_EXPORT UnblindedToken {
  public:
   UnblindedToken(std::shared_ptr<C_UnblindedToken>);
   UnblindedToken(const UnblindedToken&);
@@ -127,7 +145,7 @@ class UnblindedToken {
 bool operator==(const UnblindedToken& lhs, const UnblindedToken& rhs);
 bool operator!=(const UnblindedToken& lhs, const UnblindedToken& rhs);
 
-class Token {
+class CHALLENGE_BYPASS_RISTRETTO_EXPORT Token {
   friend class BatchDLEQProof;
 
  public:
@@ -146,7 +164,7 @@ class Token {
 bool operator==(const Token& lhs, const Token& rhs);
 bool operator!=(const Token& lhs, const Token& rhs);
 
-class PublicKey {
+class CHALLENGE_BYPASS_RISTRETTO_EXPORT PublicKey {
   friend class DLEQProof;
   friend class BatchDLEQProof;
 
@@ -161,7 +179,7 @@ class PublicKey {
   std::shared_ptr<C_PublicKey> raw;
 };
 
-class SigningKey {
+class CHALLENGE_BYPASS_RISTRETTO_EXPORT SigningKey {
   friend class DLEQProof;
   friend class BatchDLEQProof;
 
@@ -180,7 +198,7 @@ class SigningKey {
   std::shared_ptr<C_SigningKey> raw;
 };
 
-class DLEQProof {
+class CHALLENGE_BYPASS_RISTRETTO_EXPORT DLEQProof {
  public:
   DLEQProof(std::shared_ptr<C_DLEQProof>);
   DLEQProof(const DLEQProof&);
@@ -194,7 +212,7 @@ class DLEQProof {
   std::shared_ptr<C_DLEQProof> raw;
 };
 
-class BatchDLEQProof {
+class CHALLENGE_BYPASS_RISTRETTO_EXPORT BatchDLEQProof {
  public:
   BatchDLEQProof(std::shared_ptr<C_BatchDLEQProof>);
   BatchDLEQProof(const BatchDLEQProof&);
