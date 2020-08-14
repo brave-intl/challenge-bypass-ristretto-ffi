@@ -14,8 +14,9 @@ sha2 = "0.8"
 crate-type = [
     "cdylib",
     "staticlib",
+    "rlib",
 ]
-name = "challenge_bypass_ristretto"
+name = "challenge_bypass_ristretto_ffi"
 
 [features]
 nightly = ["challenge-bypass-ristretto/nightly"]
