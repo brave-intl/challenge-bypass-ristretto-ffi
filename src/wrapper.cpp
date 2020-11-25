@@ -30,7 +30,6 @@ extern "C" {
 #ifdef NO_CXXEXCEPTIONS
 #define THROW(expr) TokenException::set_last_exception(expr);
 #define CLEAR_LAST_EXCEPTION(expr) do { \
-  DCHECK(!exception_occurred()); \
   TokenException::set_last_exception(TokenException::none()); \
 } while(0)
 #else
@@ -66,7 +65,7 @@ const TokenException get_last_exception() {
 }
 
 bool exception_occurred() {
-  return !get_last_exception().is_empty();
+  return !GetOrCreateLastException()->is_empty();
 }
 #endif
 
@@ -118,6 +117,10 @@ namespace challenge_bypass_ristretto {
   std::string TokenPreimage::encode_base64() const {
     CLEAR_LAST_EXCEPTION();
     char* tmp = token_preimage_encode_base64(raw.get());
+    if (tmp == nullptr) {
+      THROW(TokenException::last_error("Failed to encode token preimage"));
+      return "";
+    }
     std::string result = std::string(tmp);
     c_char_destroy(tmp);
     return result;
@@ -161,6 +164,10 @@ namespace challenge_bypass_ristretto {
   std::string Token::encode_base64() const {
     CLEAR_LAST_EXCEPTION();
     char* tmp = token_encode_base64(raw.get());
+    if (tmp == nullptr) {
+      THROW(TokenException::last_error("Failed to encode token"));
+      return "";
+    }
     std::string result = std::string(tmp);
     c_char_destroy(tmp);
     return result;
@@ -193,6 +200,10 @@ namespace challenge_bypass_ristretto {
   std::string BlindedToken::encode_base64() const {
     CLEAR_LAST_EXCEPTION();
     char* tmp = blinded_token_encode_base64(raw.get());
+    if (tmp == nullptr) {
+      THROW(TokenException::last_error("Failed to encode blinded token"));
+      return "";
+    }
     std::string result = std::string(tmp);
     c_char_destroy(tmp);
     return result;
@@ -225,6 +236,10 @@ namespace challenge_bypass_ristretto {
   std::string SignedToken::encode_base64() const {
     CLEAR_LAST_EXCEPTION();
     char* tmp = signed_token_encode_base64(raw.get());
+    if (tmp == nullptr) {
+      THROW(TokenException::last_error("Failed to encode signed token"));
+      return "";
+    }
     std::string result = std::string(tmp);
     c_char_destroy(tmp);
     return result;
@@ -257,6 +272,10 @@ namespace challenge_bypass_ristretto {
   std::string VerificationSignature::encode_base64() const {
     CLEAR_LAST_EXCEPTION();
     char* tmp = verification_signature_encode_base64(raw.get());
+    if (tmp == nullptr) {
+      THROW(TokenException::last_error("Failed to encode verification signature"));
+      return "";
+    }
     std::string result = std::string(tmp);
     c_char_destroy(tmp);
     return result;
@@ -291,6 +310,10 @@ namespace challenge_bypass_ristretto {
   std::string UnblindedToken::encode_base64() const {
     CLEAR_LAST_EXCEPTION();
     char* tmp = unblinded_token_encode_base64(raw.get());
+    if (tmp == nullptr) {
+      THROW(TokenException::last_error("Failed to encode unblinded token"));
+      return "";
+    }
     std::string result = std::string(tmp);
     c_char_destroy(tmp);
     return result;
@@ -377,6 +400,10 @@ namespace challenge_bypass_ristretto {
   std::string SigningKey::encode_base64() const {
     CLEAR_LAST_EXCEPTION();
     char* tmp = signing_key_encode_base64(raw.get());
+    if (tmp == nullptr) {
+      THROW(TokenException::last_error("Failed to encode signing key"));
+      return "";
+    }
     std::string result = std::string(tmp);
     c_char_destroy(tmp);
     return result;
@@ -401,6 +428,10 @@ namespace challenge_bypass_ristretto {
   std::string PublicKey::encode_base64() const {
     CLEAR_LAST_EXCEPTION();
     char* tmp = public_key_encode_base64(raw.get());
+    if (tmp == nullptr) {
+      THROW(TokenException::last_error("Failed to encode public key"));
+      return "";
+    }
     std::string result = std::string(tmp);
     c_char_destroy(tmp);
     return result;
@@ -442,6 +473,10 @@ namespace challenge_bypass_ristretto {
   std::string DLEQProof::encode_base64() const {
     CLEAR_LAST_EXCEPTION();
     char* tmp = dleq_proof_encode_base64(raw.get());
+    if (tmp == nullptr) {
+      THROW(TokenException::last_error("Failed to encode DLEQ proof"));
+      return "";
+    }
     std::string result = std::string(tmp);
     c_char_destroy(tmp);
     return result;
@@ -504,15 +539,34 @@ namespace challenge_bypass_ristretto {
       THROW(TokenException("Tokens, blinded tokens and signed tokens must have the same length"));
       return unblinded_tokens;
     }
+
     std::vector<C_Token*> raw_tokens;
     std::vector<C_BlindedToken*> raw_blinded_tokens;
     std::vector<C_SignedToken*> raw_signed_tokens;
     std::vector<C_UnblindedToken*> raw_unblinded_tokens(tokens.size());
 
     for (size_t i = 0; i < tokens.size(); i++) {
-      raw_tokens.push_back(tokens[i].raw.get());
-      raw_blinded_tokens.push_back(blinded_tokens[i].raw.get());
-      raw_signed_tokens.push_back(signed_tokens[i].raw.get());
+      if (tokens[i].raw.get()) {
+        raw_tokens.push_back(tokens[i].raw.get());
+      }
+
+      if (blinded_tokens[i].raw.get()) {
+        raw_blinded_tokens.push_back(blinded_tokens[i].raw.get());
+      }
+
+      if (signed_tokens[i].raw.get()) {
+        raw_signed_tokens.push_back(signed_tokens[i].raw.get());
+      }
+    }
+
+    if (raw_tokens.size() != raw_blinded_tokens.size() || raw_tokens.size() != raw_signed_tokens.size()) {
+      THROW(TokenException("Raw tokens, raw blinded tokens and raw signed tokens must have the same length"));
+      return unblinded_tokens;
+    }
+
+    if (!public_key.raw.get()) {
+      THROW(TokenException::last_error("Could not verify DLEQ proof"));
+      return unblinded_tokens;
     }
 
     int result = batch_dleq_proof_invalid_or_unblind(raw.get(), raw_tokens.data(), raw_blinded_tokens.data(), raw_signed_tokens.data(), raw_unblinded_tokens.data(), tokens.size(), public_key.raw.get());
@@ -549,6 +603,10 @@ namespace challenge_bypass_ristretto {
   std::string BatchDLEQProof::encode_base64() const {
     CLEAR_LAST_EXCEPTION();
     char* tmp = batch_dleq_proof_encode_base64(raw.get());
+    if (tmp == nullptr) {
+      THROW(TokenException::last_error("Failed to encode batch DLEQ proof"));
+      return "";
+    }
     std::string result = std::string(tmp);
     c_char_destroy(tmp);
     return result;
