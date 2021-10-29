@@ -65,7 +65,7 @@ dependencies = [
 
 [[package]]
 name = "challenge-bypass-ristretto-ffi"
-version = "1.0.0-pre.3"
+version = "1.0.0-pre.4"
 dependencies = [
  "base64 0.9.3",
  "challenge-bypass-ristretto",
