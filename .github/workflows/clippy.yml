@@ -20,3 +20,4 @@ jobs:
       - uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          args: -- -D warnings -A clippy::missing_safety_doc
