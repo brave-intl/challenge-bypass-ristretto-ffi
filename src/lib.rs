@@ -121,16 +121,9 @@ impl_base64!(
 /// done with it.
 #[no_mangle]
 pub unsafe extern "C" fn token_random() -> *mut Token {
-    match OsRng::new() {
-        Ok(mut rng) => {
-            let token = Token::random::<Sha512, OsRng>(&mut rng);
-            Box::into_raw(Box::new(token))
-        }
-        Err(err) => {
-            update_last_error(err);
-            ptr::null_mut()
-        }
-    }
+    let mut rng = OsRng;
+    let token = Token::random::<Sha512, OsRng>(&mut rng);
+    Box::into_raw(Box::new(token))
 }
 
 /// Destroy a `Token` once you are done with it.
@@ -310,16 +303,9 @@ impl_base64!(
 /// done with it.
 #[no_mangle]
 pub unsafe extern "C" fn signing_key_random() -> *mut SigningKey {
-    match OsRng::new() {
-        Ok(mut rng) => {
-            let key = SigningKey::random(&mut rng);
-            Box::into_raw(Box::new(key))
-        }
-        Err(err) => {
-            update_last_error(err);
-            ptr::null_mut()
-        }
-    }
+    let mut rng = OsRng;
+    let key = SigningKey::random(&mut rng);
+    Box::into_raw(Box::new(key))
 }
 
 /// Destroy a `SigningKey` once you are done with it.
@@ -416,21 +402,10 @@ pub unsafe extern "C" fn dleq_proof_new(
     key: *const SigningKey,
 ) -> *mut DLEQProof {
     if !blinded_token.is_null() && !signed_token.is_null() && !key.is_null() {
-        match OsRng::new() {
-            Ok(mut rng) => {
-                match DLEQProof::new::<Sha512, OsRng>(
-                    &mut rng,
-                    &*blinded_token,
-                    &*signed_token,
-                    &*key,
-                ) {
-                    Ok(proof) => return Box::into_raw(Box::new(proof)),
-                    Err(err) => update_last_error(err),
-                }
-            }
-            Err(err) => {
-                update_last_error(err);
-            }
+        let mut rng = OsRng;
+        match DLEQProof::new::<Sha512, OsRng>(&mut rng, &*blinded_token, &*signed_token, &*key) {
+            Ok(proof) => return Box::into_raw(Box::new(proof)),
+            Err(err) => update_last_error(err),
         }
         return ptr::null_mut();
     }
@@ -514,30 +489,18 @@ pub unsafe extern "C" fn batch_dleq_proof_new(
     key: *const SigningKey,
 ) -> *mut BatchDLEQProof {
     if !blinded_tokens.is_null() && !signed_tokens.is_null() && !key.is_null() {
-        match OsRng::new() {
-            Ok(mut rng) => {
-                let blinded_tokens: &[*const BlindedToken] =
-                    slice::from_raw_parts(blinded_tokens, tokens_length as usize);
-                let blinded_tokens: Vec<BlindedToken> =
-                    blinded_tokens.iter().map(|p| **p).collect();
-                let signed_tokens: &[*const SignedToken] =
-                    slice::from_raw_parts(signed_tokens, tokens_length as usize);
-                let signed_tokens: Vec<SignedToken> = signed_tokens.iter().map(|p| **p).collect();
+        let mut rng = OsRng;
+        let blinded_tokens: &[*const BlindedToken] =
+            slice::from_raw_parts(blinded_tokens, tokens_length as usize);
+        let blinded_tokens: Vec<BlindedToken> = blinded_tokens.iter().map(|p| **p).collect();
+        let signed_tokens: &[*const SignedToken] =
+            slice::from_raw_parts(signed_tokens, tokens_length as usize);
+        let signed_tokens: Vec<SignedToken> = signed_tokens.iter().map(|p| **p).collect();
 
-                match BatchDLEQProof::new::<Sha512, OsRng>(
-                    &mut rng,
-                    &blinded_tokens,
-                    &signed_tokens,
-                    &*key,
-                ) {
-                    Ok(proof) => return Box::into_raw(Box::new(proof)),
-                    Err(err) => update_last_error(err),
-                }
-            }
-            Err(err) => {
-                update_last_error(err);
-                return ptr::null_mut();
-            }
+        match BatchDLEQProof::new::<Sha512, OsRng>(&mut rng, &blinded_tokens, &signed_tokens, &*key)
+        {
+            Ok(proof) => return Box::into_raw(Box::new(proof)),
+            Err(err) => update_last_error(err),
         }
     }
     update_last_error("Pointer to blinded tokens, signed tokens or signing key was null");

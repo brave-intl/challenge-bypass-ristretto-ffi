@@ -6,9 +6,9 @@ version = "1.0.0-pre.3"
 [dependencies]
 base64 = "0.9.3"
 challenge-bypass-ristretto = { version = "1.0.0", features = ["base64"] }
-hmac = "0.7"
-rand = "0.6.0"
-sha2 = "0.8"
+hmac = "0.10"
+rand = "0.7"
+sha2 = "0.9"
 
 [lib]
 crate-type = [
