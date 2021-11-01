@@ -1,4 +1,4 @@
-name: "CI"
+name: "CI Nightly"
 
 on:
   push:
@@ -8,11 +8,7 @@ on:
 
 jobs:
   ci:  
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
-
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
@@ -20,6 +16,6 @@ jobs:
     - name: Install Rust
       uses: actions-rs/toolchain@v1
       with:
-          toolchain: stable
+          toolchain: nightly
     - name: Build & Test
-      run: cargo build && cargo test
+      run: cargo build --features nightly && cargo test --features nightly
