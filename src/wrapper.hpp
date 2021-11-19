@@ -60,6 +60,9 @@ class CHALLENGE_BYPASS_RISTRETTO_EXPORT TokenPreimage {
   static TokenPreimage decode_base64(const std::string);
   std::string encode_base64() const;
 
+  bool operator==(const TokenPreimage& rhs) const;
+  bool operator!=(const TokenPreimage& rhs) const;
+
  private:
   std::shared_ptr<C_TokenPreimage> raw;
 };
@@ -76,12 +79,12 @@ class CHALLENGE_BYPASS_RISTRETTO_EXPORT BlindedToken {
   static BlindedToken decode_base64(const std::string);
   std::string encode_base64() const;
 
+  bool operator==(const BlindedToken& rhs) const;
+  bool operator!=(const BlindedToken& rhs) const;
+
  private:
   std::shared_ptr<C_BlindedToken> raw;
 };
-
-bool operator==(const BlindedToken& lhs, const BlindedToken& rhs);
-bool operator!=(const BlindedToken& lhs, const BlindedToken& rhs);
 
 class CHALLENGE_BYPASS_RISTRETTO_EXPORT SignedToken {
   friend class Token;
@@ -95,12 +98,12 @@ class CHALLENGE_BYPASS_RISTRETTO_EXPORT SignedToken {
   static SignedToken decode_base64(const std::string);
   std::string encode_base64() const;
 
+  bool operator==(const SignedToken& rhs) const;
+  bool operator!=(const SignedToken& rhs) const;
+
  private:
   std::shared_ptr<C_SignedToken> raw;
 };
-
-bool operator==(const SignedToken& lhs, const SignedToken& rhs);
-bool operator!=(const SignedToken& lhs, const SignedToken& rhs);
 
 class CHALLENGE_BYPASS_RISTRETTO_EXPORT VerificationSignature {
   friend class VerificationKey;
@@ -138,12 +141,12 @@ class CHALLENGE_BYPASS_RISTRETTO_EXPORT UnblindedToken {
   static UnblindedToken decode_base64(const std::string);
   std::string encode_base64() const;
 
+  bool operator==(const UnblindedToken& rhs) const;
+  bool operator!=(const UnblindedToken& rhs) const;
+
  private:
   std::shared_ptr<C_UnblindedToken> raw;
 };
-
-bool operator==(const UnblindedToken& lhs, const UnblindedToken& rhs);
-bool operator!=(const UnblindedToken& lhs, const UnblindedToken& rhs);
 
 class CHALLENGE_BYPASS_RISTRETTO_EXPORT Token {
   friend class BatchDLEQProof;
@@ -157,12 +160,12 @@ class CHALLENGE_BYPASS_RISTRETTO_EXPORT Token {
   static Token decode_base64(const std::string);
   std::string encode_base64() const;
 
+  bool operator==(const Token& rhs) const;
+  bool operator!=(const Token& rhs) const;
+
  private:
   std::shared_ptr<C_Token> raw;
 };
-
-bool operator==(const Token& lhs, const Token& rhs);
-bool operator!=(const Token& lhs, const Token& rhs);
 
 class CHALLENGE_BYPASS_RISTRETTO_EXPORT PublicKey {
   friend class DLEQProof;
@@ -174,6 +177,9 @@ class CHALLENGE_BYPASS_RISTRETTO_EXPORT PublicKey {
   ~PublicKey();
   static PublicKey decode_base64(const std::string);
   std::string encode_base64() const;
+
+  bool operator==(const PublicKey& rhs) const;
+  bool operator!=(const PublicKey& rhs) const;
 
  private:
   std::shared_ptr<C_PublicKey> raw;
@@ -194,6 +200,9 @@ class CHALLENGE_BYPASS_RISTRETTO_EXPORT SigningKey {
   static SigningKey decode_base64(const std::string);
   std::string encode_base64() const;
 
+  bool operator==(const SigningKey& rhs) const;
+  bool operator!=(const SigningKey& rhs) const;
+
  private:
   std::shared_ptr<C_SigningKey> raw;
 };
@@ -207,6 +216,9 @@ class CHALLENGE_BYPASS_RISTRETTO_EXPORT DLEQProof {
   bool verify(BlindedToken, SignedToken, PublicKey);
   static DLEQProof decode_base64(const std::string);
   std::string encode_base64() const;
+
+  bool operator==(const DLEQProof& rhs) const;
+  bool operator!=(const DLEQProof& rhs) const;
 
  private:
   std::shared_ptr<C_DLEQProof> raw;
@@ -224,6 +236,9 @@ class CHALLENGE_BYPASS_RISTRETTO_EXPORT BatchDLEQProof {
   std::vector<UnblindedToken> verify_and_unblind(std::vector<Token>, std::vector<BlindedToken>, std::vector<SignedToken>, PublicKey);
   static BatchDLEQProof decode_base64(const std::string);
   std::string encode_base64() const;
+
+  bool operator==(const BatchDLEQProof& rhs) const;
+  bool operator!=(const BatchDLEQProof& rhs) const;
 
  private:
   std::shared_ptr<C_BatchDLEQProof> raw;

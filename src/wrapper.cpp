@@ -125,6 +125,14 @@ namespace challenge_bypass_ristretto {
     c_char_destroy(tmp);
     return result;
   }
+
+  bool TokenPreimage::operator==(const TokenPreimage& rhs) const {
+    return encode_base64() == rhs.encode_base64();
+  }
+
+  bool TokenPreimage::operator!=(const TokenPreimage& rhs) const {
+    return !(*this == rhs);
+  }
 }
 
 // class Token
@@ -173,12 +181,12 @@ namespace challenge_bypass_ristretto {
     return result;
   }
 
-  bool operator==(const Token& lhs, const Token& rhs) {
-    return lhs.encode_base64() == rhs.encode_base64();
+  bool Token::operator==(const Token& rhs) const {
+    return encode_base64() == rhs.encode_base64();
   }
 
-  bool operator!=(const Token& lhs, const Token& rhs) {
-    return lhs.encode_base64() != rhs.encode_base64();
+  bool Token::operator!=(const Token& rhs) const {
+    return !(*this == rhs);
   }
 }
 
@@ -209,12 +217,12 @@ namespace challenge_bypass_ristretto {
     return result;
   }
 
-  bool operator==(const BlindedToken& lhs, const BlindedToken& rhs) {
-    return lhs.encode_base64() == rhs.encode_base64();
+  bool BlindedToken::operator==(const BlindedToken& rhs) const {
+    return encode_base64() == rhs.encode_base64();
   }
 
-  bool operator!=(const BlindedToken& lhs, const BlindedToken& rhs) {
-    return lhs.encode_base64() != rhs.encode_base64();
+  bool BlindedToken::operator!=(const BlindedToken& rhs) const {
+    return !(*this == rhs);
   }
 }
 
@@ -245,12 +253,12 @@ namespace challenge_bypass_ristretto {
     return result;
   }
 
-  bool operator==(const SignedToken& lhs, const SignedToken& rhs) {
-    return lhs.encode_base64() == rhs.encode_base64();
+  bool SignedToken::operator==(const SignedToken& rhs) const {
+    return encode_base64() == rhs.encode_base64();
   }
 
-  bool operator!=(const SignedToken& lhs, const SignedToken& rhs) {
-    return lhs.encode_base64() != rhs.encode_base64();
+  bool SignedToken::operator!=(const SignedToken& rhs) const {
+    return !(*this == rhs);
   }
 }
 
@@ -319,12 +327,12 @@ namespace challenge_bypass_ristretto {
     return result;
   }
 
-  bool operator==(const UnblindedToken& lhs, const UnblindedToken& rhs) {
-    return lhs.encode_base64() == rhs.encode_base64();
+  bool UnblindedToken::operator==(const UnblindedToken& rhs) const {
+    return encode_base64() == rhs.encode_base64();
   }
 
-  bool operator!=(const UnblindedToken& lhs, const UnblindedToken& rhs) {
-    return lhs.encode_base64() != rhs.encode_base64();
+  bool UnblindedToken::operator!=(const UnblindedToken& rhs) const {
+    return !(*this == rhs);
   }
 }
 
@@ -408,6 +416,14 @@ namespace challenge_bypass_ristretto {
     c_char_destroy(tmp);
     return result;
   }
+
+  bool SigningKey::operator==(const SigningKey& rhs) const {
+    return encode_base64() == rhs.encode_base64();
+  }
+
+  bool SigningKey::operator!=(const SigningKey& rhs) const {
+    return !(*this == rhs);
+  }
 }
 
 // class PublicKey
@@ -435,6 +451,14 @@ namespace challenge_bypass_ristretto {
     std::string result = std::string(tmp);
     c_char_destroy(tmp);
     return result;
+  }
+
+  bool PublicKey::operator==(const PublicKey& rhs) const {
+    return encode_base64() == rhs.encode_base64();
+  }
+
+  bool PublicKey::operator!=(const PublicKey& rhs) const {
+    return !(*this == rhs);
   }
 }
 
@@ -480,6 +504,14 @@ namespace challenge_bypass_ristretto {
     std::string result = std::string(tmp);
     c_char_destroy(tmp);
     return result;
+  }
+
+  bool DLEQProof::operator==(const DLEQProof& rhs) const {
+    return encode_base64() == rhs.encode_base64();
+  }
+
+  bool DLEQProof::operator!=(const DLEQProof& rhs) const {
+    return !(*this == rhs);
   }
 }
 
@@ -610,5 +642,13 @@ namespace challenge_bypass_ristretto {
     std::string result = std::string(tmp);
     c_char_destroy(tmp);
     return result;
+  }
+
+  bool BatchDLEQProof::operator==(const BatchDLEQProof& rhs) const {
+    return encode_base64() == rhs.encode_base64();
+  }
+
+  bool BatchDLEQProof::operator!=(const BatchDLEQProof& rhs) const {
+    return !(*this == rhs);
   }
 }
