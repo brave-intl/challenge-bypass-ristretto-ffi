@@ -4,7 +4,7 @@ name = "challenge-bypass-ristretto-ffi"
 version = "1.0.1"
 
 [dependencies]
-base64 = "0.9.3"
+base64 = "0.22.0"
 challenge-bypass-ristretto = { version = "1.0.1", features = ["base64"] }
 hmac = "0.10"
 rand = "0.7"
