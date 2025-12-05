@@ -4,11 +4,11 @@ name = "challenge-bypass-ristretto-ffi"
 version = "1.0.1"
 
 [dependencies]
-base64 = "0.9.3"
-challenge-bypass-ristretto = { version = "1.0.1", features = ["base64"] }
-hmac = "0.10"
-rand = "0.7"
-sha2 = "0.9"
+base64 = "0.22"
+challenge-bypass-ristretto = { git = "https://github.com/acatarineu/challenge-bypass-ristretto", rev = "1e0eb80b1098494cfb44d062fa27f17f78e7be15", features = ["base64"] }
+hmac = "0.12"
+rand = { version = "0.8", default-features = false, features = ["getrandom"] }
+sha2 = "0.10"
 
 [lib]
 crate-type = [
@@ -19,7 +19,6 @@ crate-type = [
 name = "challenge_bypass_ristretto_ffi"
 
 [features]
-nightly = ["challenge-bypass-ristretto/nightly"]
 cbindgen = []
 
 [profile.dev]

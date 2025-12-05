@@ -376,6 +376,15 @@ namespace challenge_bypass_ristretto {
     return SigningKey(raw_key);
   }
 
+  SigningKey SigningKey::from_random_bytes(const uint8_t* bytes, size_t bytes_length) {
+    CLEAR_LAST_EXCEPTION();
+    std::shared_ptr<C_SigningKey> raw_key(signing_key_from_random_bytes(bytes, bytes_length), signing_key_destroy);
+    if (raw_key == nullptr) {
+      THROW(TokenException::last_error("Failed to create signing key from random bytes"));
+    }
+    return SigningKey(raw_key);
+  }
+
   SignedToken SigningKey::sign(BlindedToken tok) const {
     CLEAR_LAST_EXCEPTION();
     std::shared_ptr<C_SignedToken> raw_signed(signing_key_sign(raw.get(), tok.raw.get()), signed_token_destroy);

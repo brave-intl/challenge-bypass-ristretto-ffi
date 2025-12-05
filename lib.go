@@ -280,6 +280,20 @@ func RandomSigningKey() (*SigningKey, error) {
 	return key, nil
 }
 
+// SigningKeyFromRandomBytes creates a new `SigningKey` from 64 random bytes.
+func SigningKeyFromRandomBytes(bytes []byte) (*SigningKey, error) {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
+	raw := C.signing_key_from_random_bytes((*C.uint8_t)(&bytes[0]), C.size_t(len(bytes)))
+	if raw == nil {
+		return nil, wrapLastError("Failed to create signing key from random bytes")
+	}
+	key := &SigningKey{raw: raw}
+	runtime.SetFinalizer(key, signingKeyFinalizer)
+	return key, nil
+}
+
 // MarshalText marshalls the signing key into text.
 func (k *SigningKey) MarshalText() ([]byte, error) {
 	runtime.LockOSThread()

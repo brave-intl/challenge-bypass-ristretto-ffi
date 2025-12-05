@@ -194,6 +194,7 @@ class CHALLENGE_BYPASS_RISTRETTO_EXPORT SigningKey {
   SigningKey(const SigningKey&);
   ~SigningKey();
   static SigningKey random();
+  static SigningKey from_random_bytes(const uint8_t* bytes, size_t bytes_length);
   SignedToken sign(BlindedToken) const;
   UnblindedToken rederive_unblinded_token(TokenPreimage);
   PublicKey public_key();

@@ -308,6 +308,32 @@ pub unsafe extern "C" fn signing_key_random() -> *mut SigningKey {
     Box::into_raw(Box::new(key))
 }
 
+/// Generate a new `SigningKey` from random bytes.
+///
+/// The `bytes` parameter must be exactly 64 bytes long. If the length is incorrect
+/// or something else goes wrong, this will return a null pointer. Don't forget to
+/// destroy the `SigningKey` once you are done with it!
+#[no_mangle]
+pub unsafe extern "C" fn signing_key_from_random_bytes(
+    bytes: *const u8,
+    bytes_length: usize,
+) -> *mut SigningKey {
+    if bytes.is_null() {
+        update_last_error("Pointer to random bytes was null");
+        return ptr::null_mut();
+    }
+
+    let bytes_slice = slice::from_raw_parts(bytes, bytes_length);
+
+    match SigningKey::from_random_bytes(bytes_slice) {
+        Ok(key) => Box::into_raw(Box::new(key)),
+        Err(err) => {
+            update_last_error(err);
+            ptr::null_mut()
+        }
+    }
+}
+
 /// Destroy a `SigningKey` once you are done with it.
 #[no_mangle]
 pub unsafe extern "C" fn signing_key_destroy(key: *mut SigningKey) {
@@ -672,6 +698,58 @@ mod tests {
                 0,
                 "Embedded nulls in the same message should validate"
             );
+        }
+    }
+
+    #[test]
+    fn test_signing_key_from_random_bytes() {
+        use rand::RngCore;
+        unsafe {
+            // Test success case with 64 bytes
+            let mut random_bytes = [0u8; 64];
+            let mut rng = OsRng;
+            rng.fill_bytes(&mut random_bytes);
+
+            let key1 = signing_key_from_random_bytes(random_bytes.as_ptr(), random_bytes.len());
+            assert!(!key1.is_null(), "Should create key from 64 random bytes");
+
+            // Test determinism - same bytes should produce same key
+            let key2 = signing_key_from_random_bytes(random_bytes.as_ptr(), random_bytes.len());
+            assert!(!key2.is_null(), "Should create second key from same bytes");
+
+            let encoded1 = signing_key_encode_base64(key1);
+            let encoded2 = signing_key_encode_base64(key2);
+            assert_eq!(
+                std::ffi::CStr::from_ptr(encoded1).to_str().unwrap(),
+                std::ffi::CStr::from_ptr(encoded2).to_str().unwrap(),
+                "Same bytes should produce same key"
+            );
+            c_char_destroy(encoded1);
+            c_char_destroy(encoded2);
+
+            // Test that the key works - can sign tokens
+            let token = token_random();
+            let blinded_token = token_blind(token);
+            let signed_token = signing_key_sign(key1, blinded_token);
+            assert!(
+                !signed_token.is_null(),
+                "Key from random bytes should be able to sign"
+            );
+
+            // Cleanup
+            signing_key_destroy(key1);
+            signing_key_destroy(key2);
+            token_destroy(token);
+            blinded_token_destroy(blinded_token);
+            signed_token_destroy(signed_token);
+
+            // Test error cases - wrong lengths
+            let wrong_lengths = [32, 63, 65, 0, 128];
+            for &len in wrong_lengths.iter() {
+                let bytes = vec![0u8; len];
+                let key = signing_key_from_random_bytes(bytes.as_ptr(), len);
+                assert!(key.is_null(), "Should return null for wrong length {}", len);
+            }
         }
     }
 }
