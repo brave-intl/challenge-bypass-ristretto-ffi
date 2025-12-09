@@ -49,6 +49,8 @@ typedef struct C_DLEQProof C_DLEQProof;
 
 typedef struct C_FixupContext C_FixupContext;
 
+typedef struct C_Precedence C_Precedence;
+
 /**
  * A `PublicKey` is a committment by the server to a particular `SigningKey`.
  *
