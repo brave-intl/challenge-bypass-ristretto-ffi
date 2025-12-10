@@ -599,6 +599,9 @@ func batchDleqProofFinalizer(p *BatchDLEQProof) {
 // NewBatchDLEQProof showing each SignedToken is the result of signing the corresponding BlindedToken with the
 // given SigningKey
 func NewBatchDLEQProof(blindedTokens []*BlindedToken, signedTokens []*SignedToken, key *SigningKey) (*BatchDLEQProof, error) {
+	if len(blindedTokens) < 1 {
+		return nil, errors.New("Length of blinded tokens must be more than 0")
+	}
 	if len(blindedTokens) != len(signedTokens) {
 		return nil, errors.New("Length of blinded and signed tokens must match")
 	}
