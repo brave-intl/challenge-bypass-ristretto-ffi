@@ -1,7 +1,8 @@
 [package]
 authors = ["eV <ev@7pr.xyz>"]
 name = "challenge-bypass-ristretto-ffi"
-version = "1.0.1"
+version = "2.0.4"
+edition = "2018"
 
 [dependencies]
 base64 = "0.22"

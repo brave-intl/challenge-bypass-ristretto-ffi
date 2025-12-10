@@ -13,25 +13,19 @@ ifdef NO_CXXEXCEPTIONS
 CFLAGS += -DNO_CXXEXCEPTIONS=${NO_CXXEXCEPTIONS}
 endif
 
-all: examples/cpp.out
+all: examples/golang.out
 
 src/lib.h: src/lib.rs
 	cbindgen -o src/lib.h
-
-examples/cpp.out: target/debug/libchallenge_bypass_ristretto_ffi.a examples/wrapper.o examples/cpp/main.cpp
-	g++ $(CFLAGS) -std=gnu++0x examples/cpp/main.cpp examples/wrapper.o ./target/debug/libchallenge_bypass_ristretto_ffi.a -I ./src -lpthread -ldl -o examples/cpp.out
-
-examples/wrapper.o: src/lib.h src/wrapper.cpp src/wrapper.hpp
-	g++ $(CFLAGS) -std=gnu++0x src/wrapper.cpp -I src/ -c  -o examples/wrapper.o
-
-target/debug/libchallenge_bypass_ristretto_ffi.a: src/lib.rs Cargo.toml
-	cargo build
 
 examples/golang.out: target/x86_64-unknown-linux-musl/debug/libchallenge_bypass_ristretto_ffi.a examples/golang/main.go lib.go src/lib.h
 	go build --ldflags '-extldflags "-static"' -o examples/golang.out examples/golang/main.go
 
 examples/golang.dyn.out: target/x86_64-unknown-linux-musl/debug/libchallenge_bypass_ristretto_ffi.a examples/golang/main.go lib.go src/lib.h
 	go build -o examples/golang.dyn.out examples/golang/main.go
+
+test: examples/golang.out
+	examples/golang.out
 
 target/x86_64-unknown-linux-musl/debug/libchallenge_bypass_ristretto_ffi.a: src/lib.rs Cargo.toml
 	cargo build --target=x86_64-unknown-linux-musl

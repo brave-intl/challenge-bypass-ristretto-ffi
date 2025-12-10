@@ -6,21 +6,53 @@ on:
   pull_request:
     branches: [ master ]
 
+permissions:
+  contents: read
+
 jobs:
-  ci:  
-    runs-on: ${{ matrix.os }}
+  ffi:
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
-
+        toolchain: [stable, nightly]
     steps:
     - name: Checkout repository
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-
-    - name: Install Rust
-      uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
+    - name: Setup Rust toolchain
+      uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c # v1.15.2
       with:
-          toolchain: stable
+          toolchain: ${{ matrix.toolchain }}
+          components: clippy
           override: true
     - name: Build & Test
       run: cargo build && cargo test
+    - name: Clippy
+      run: cargo clippy -- -D warnings -A clippy::missing_safety_doc
+  golang:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+    - name: Setup Rust toolchain
+      uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c # v1.15.2
+      with:
+          override: true
+    - name: Set up Golang toolchain
+      id: setup-go
+      uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
+      with:
+        go-version: 1.25
+    - name: Install musl target
+      run: rustup target add x86_64-unknown-linux-musl
+    - name: Build & Test
+      run: make && make test
+  version:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+    - name: Install yq
+      run: sudo apt-get update && sudo apt-get install yq
+    - name: Check versions are consistent
+      run: |
+        [ "$(tomlq -r '.package.version' Cargo.toml)" = "$(tomlq -r '.dependencies."challenge-bypass-ristretto".version' Cargo.toml)" ] || (echo "Error: Crate version does not match challenge-bypass-ristretto version" && exit 1)
