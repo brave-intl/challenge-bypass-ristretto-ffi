@@ -5,7 +5,7 @@ version = "1.0.1"
 
 [dependencies]
 base64 = "0.22"
-challenge-bypass-ristretto = { git = "https://github.com/brave-intl/challenge-bypass-ristretto", tag = "v2.0.4", features = ["base64"] }
+challenge-bypass-ristretto = { version = "2.0.4", features = ["base64"] }
 hmac = "0.12"
 rand = { version = "0.8", default-features = false, features = ["getrandom"] }
 sha2 = "0.10"
