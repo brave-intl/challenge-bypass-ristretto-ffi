@@ -1,12 +1,12 @@
 # challenge-bypass-ristretto-ffi [![Build Status](https://travis-ci.org/brave-intl/challenge-bypass-ristretto-ffi.svg?branch=master)](https://travis-ci.org/brave-intl/challenge-bypass-ristretto-ffi)
 
-**A FFI crate, C++ and Golang wrappers to expose functionality from [challenge-bypass-ristretto](https://github.com/brave-intl/challenge-bypass-ristretto)**
+**A FFI crate and Golang wrappers to expose functionality from [challenge-bypass-ristretto](https://github.com/brave-intl/challenge-bypass-ristretto)**
 
 The `challenge-bypass-ristretto` crate implements a form of blinded tokens using a VOPRF protocol in rust. This
 crate exposes C FFI functions and is configured to produce a static library so that the functionality
 can be used in other languages.
 
-Currently there are bindings for C++ and Golang.
+Currently there are bindings for Golang.
 
 # Notes
 
@@ -41,13 +41,6 @@ file.
 This crate instantiates challenge-bypass-ristretto with Sha512 as the hash and
 `rand::OsRng` as the cryptographically secure random number generator.
 
-The C++ bindings can optionally be built with exceptions turned off. This is
-intended for interoperability with Chromium which by default does not use
-exceptions. If exceptions are turned off, instead of being thrown exceptions
-are assigned to a thread local variable. The `exception_occured()` function
-must be called after every function call and if an error occurred the
-`get_last_exception()` function can be called to retrieve and clear the exception.
-
 # Development
 
 Working on this repository requires having Rust, Go 1.11, g++, musl and valgrind to be installed.
@@ -56,17 +49,8 @@ Dockerfile for building and testing the Golang bindings.
 
 ## Testing
 
-There are end to end test binaries for the C++ and Golang bindings, when run under
+There are end to end test binaries for the Golang bindings, when run under
 valgrind we can ensure memory is being properly freed.
-
-## C++
-
-### Running e2e test
-
-```
-make examples/cpp.out
-valgrind --leak-check=yes --error-exitcode=1 ./examples/cpp.out
-```
 
 ## Golang
 
@@ -88,4 +72,3 @@ make go-docker-test
 ```
 cbindgen -o src/lib.h
 ```
-
