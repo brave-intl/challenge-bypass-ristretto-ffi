@@ -308,6 +308,32 @@ pub unsafe extern "C" fn signing_key_random() -> *mut SigningKey {
     Box::into_raw(Box::new(key))
 }
 
+/// Generate a new `SigningKey` from random bytes.
+///
+/// The `bytes` parameter must be exactly 64 bytes long. If the length is incorrect
+/// or something else goes wrong, this will return a null pointer. Don't forget to
+/// destroy the `SigningKey` once you are done with it!
+#[no_mangle]
+pub unsafe extern "C" fn signing_key_from_random_bytes(
+    bytes: *const u8,
+    bytes_length: usize,
+) -> *mut SigningKey {
+    if bytes.is_null() {
+        update_last_error("Pointer to random bytes was null");
+        return ptr::null_mut();
+    }
+
+    let bytes_slice = slice::from_raw_parts(bytes, bytes_length);
+
+    match SigningKey::from_random_bytes(bytes_slice) {
+        Ok(key) => Box::into_raw(Box::new(key)),
+        Err(err) => {
+            update_last_error(err);
+            ptr::null_mut()
+        }
+    }
+}
+
 /// Destroy a `SigningKey` once you are done with it.
 #[no_mangle]
 pub unsafe extern "C" fn signing_key_destroy(key: *mut SigningKey) {

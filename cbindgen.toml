@@ -7,7 +7,7 @@ include_guard = "_CHALLENGE_BYPASS_RISTRETTO_LIB_H"
 # bindings
 parse_deps = true
 # A black list of crate names that are not allowed to be parsed
-exclude = ["generic_array", "rand", "curve25519_dalek", "sha2", "merlin", "serde", "blobby", "serde_derive"]
+exclude = ["generic_array", "rand", "getrandom", "curve25519_dalek", "sha2", "merlin", "serde", "blobby", "serde_derive"]
 
 [parse.expand]
 # A list of crate names that should be run through `cargo expand` before
