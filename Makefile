@@ -24,6 +24,9 @@ examples/golang.out: target/x86_64-unknown-linux-musl/debug/libchallenge_bypass_
 examples/golang.dyn.out: target/x86_64-unknown-linux-musl/debug/libchallenge_bypass_ristretto_ffi.a examples/golang/main.go lib.go src/lib.h
 	go build -o examples/golang.dyn.out examples/golang/main.go
 
+test: examples/golang.out
+	examples/golang.out
+
 target/x86_64-unknown-linux-musl/debug/libchallenge_bypass_ristretto_ffi.a: src/lib.rs Cargo.toml
 	cargo build --target=x86_64-unknown-linux-musl
 
