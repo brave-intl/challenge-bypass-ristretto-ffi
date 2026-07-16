@@ -202,6 +202,22 @@ pub unsafe extern "C" fn unblinded_token_derive_verification_key_sha512(
     Box::into_raw(Box::new((*token).derive_verification_key::<Sha512>()))
 }
 
+/// Take a reference to an `UnblindedToken` and use it to derive a `VerificationKey`
+/// with the RFC 9497 finalization, using Sha512 as the hash function
+///
+/// If something goes wrong, this will return a null pointer. Don't forget to
+/// destroy the `VerificationKey` once you are done with it!
+#[no_mangle]
+pub unsafe extern "C" fn unblinded_token_derive_verification_key_rfc_sha512(
+    token: *const UnblindedToken,
+) -> *mut VerificationKey {
+    if token.is_null() {
+        update_last_error("Pointer to unblinded token was null");
+        return ptr::null_mut();
+    }
+    Box::into_raw(Box::new((*token).derive_verification_key_rfc::<Sha512>()))
+}
+
 /// Take a reference to an `UnblindedToken` and return the corresponding `TokenPreimage`
 ///
 /// If something goes wrong, this will return a null pointer. Don't forget to
@@ -381,6 +397,32 @@ pub unsafe extern "C" fn signing_key_rederive_unblinded_token(
     }
 
     Box::into_raw(Box::new((*key).rederive_unblinded_token(&*t)))
+}
+
+/// Take a reference to a `SigningKey` and use it to rederive an `UnblindedToken`
+/// with the RFC 9497 HashToGroup point derivation, using Sha512 as the hash
+/// function
+///
+/// Returns a null pointer if the preimage maps to the group identity element
+/// (RFC 9497 Section 3.3.1), or if a pointer argument is null. Don't forget to
+/// destroy the `UnblindedToken` once you are done with it!
+#[no_mangle]
+pub unsafe extern "C" fn signing_key_rederive_unblinded_token_rfc(
+    key: *const SigningKey,
+    t: *const TokenPreimage,
+) -> *mut UnblindedToken {
+    if key.is_null() || t.is_null() {
+        update_last_error("Pointer to signing key or token preimage was null");
+        return ptr::null_mut();
+    }
+
+    match (*key).rederive_unblinded_token_rfc::<Sha512>(&*t) {
+        Ok(unblinded_token) => Box::into_raw(Box::new(unblinded_token)),
+        Err(err) => {
+            update_last_error(err);
+            ptr::null_mut()
+        }
+    }
 }
 
 /// Take a reference to a `SigningKey` and return it's associated `PublicKey`

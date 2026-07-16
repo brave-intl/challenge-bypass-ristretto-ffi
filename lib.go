@@ -266,6 +266,22 @@ func (k *SigningKey) RederiveUnblindedToken(t *TokenPreimage) *UnblindedToken {
 	return tok
 }
 
+// RederiveUnblindedTokenRfc rederives an UnblindedToken using the RFC 9497
+// HashToGroup point derivation. It returns an error if the preimage maps to the
+// group identity element (RFC 9497 Section 3.3.1).
+func (k *SigningKey) RederiveUnblindedTokenRfc(t *TokenPreimage) (*UnblindedToken, error) {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
+	raw := C.signing_key_rederive_unblinded_token_rfc(k.raw, t.raw)
+	if raw == nil {
+		return nil, wrapLastError("Failed to rederive unblinded token")
+	}
+	tok := &UnblindedToken{raw: raw}
+	runtime.SetFinalizer(tok, unblindedTokenFinalizer)
+	return tok, nil
+}
+
 // RandomSigningKey generates a new random `SigningKey` using the os random number generator.
 func RandomSigningKey() (*SigningKey, error) {
 	runtime.LockOSThread()
@@ -353,6 +369,21 @@ func (t *UnblindedToken) DeriveVerificationKey() *VerificationKey {
 	defer runtime.UnlockOSThread()
 
 	raw := C.unblinded_token_derive_verification_key_sha512(t.raw)
+	if raw == nil {
+		panic(wrapLastError("Failed to derive verification key"))
+	}
+	key := &VerificationKey{raw: raw}
+	runtime.SetFinalizer(key, verificationKeyFinalizer)
+	return key
+}
+
+// DeriveVerificationKeyRfc derives the VerificationKey using the RFC 9497
+// finalization. It pairs with tokens rederived via RederiveUnblindedTokenRfc.
+func (t *UnblindedToken) DeriveVerificationKeyRfc() *VerificationKey {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
+	raw := C.unblinded_token_derive_verification_key_rfc_sha512(t.raw)
 	if raw == nil {
 		panic(wrapLastError("Failed to derive verification key"))
 	}

@@ -25,9 +25,9 @@ checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
 
 [[package]]
 name = "challenge-bypass-ristretto"
-version = "2.0.4"
+version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "678f9e12dafa3a0ef0c300dea81a4c716cd9d1940efd9fd5ea0267acc82b49b6"
+checksum = "2332185c9f36f499aebf7b4afc23386a41f312e66067ccb5366286eb2b3d7951"
 dependencies = [
  "base64",
  "curve25519-dalek",
@@ -35,14 +35,13 @@ dependencies = [
  "hmac",
  "rand",
  "rand_chacha",
- "rand_core",
  "subtle",
  "zeroize",
 ]
 
 [[package]]
 name = "challenge-bypass-ristretto-ffi"
-version = "1.0.1"
+version = "2.1.0"
 dependencies = [
  "base64",
  "challenge-bypass-ristretto",
