@@ -225,6 +225,15 @@ void unblinded_token_destroy(struct C_UnblindedToken *token);
 struct C_VerificationKey *unblinded_token_derive_verification_key_sha512(const struct C_UnblindedToken *token);
 
 /**
+ * Take a reference to an `UnblindedToken` and use it to derive a `VerificationKey`
+ * with the RFC 9497 finalization, using Sha512 as the hash function
+ *
+ * If something goes wrong, this will return a null pointer. Don't forget to
+ * destroy the `VerificationKey` once you are done with it!
+ */
+struct C_VerificationKey *unblinded_token_derive_verification_key_rfc_sha512(const struct C_UnblindedToken *token);
+
+/**
  * Take a reference to an `UnblindedToken` and return the corresponding `TokenPreimage`
  *
  * If something goes wrong, this will return a null pointer. Don't forget to
@@ -336,6 +345,18 @@ struct C_SignedToken *signing_key_sign(const struct C_SigningKey *key,
  */
 struct C_UnblindedToken *signing_key_rederive_unblinded_token(const struct C_SigningKey *key,
                                                               const struct C_TokenPreimage *t);
+
+/**
+ * Take a reference to a `SigningKey` and use it to rederive an `UnblindedToken`
+ * with the RFC 9497 HashToGroup point derivation, using Sha512 as the hash
+ * function
+ *
+ * Returns a null pointer if the preimage maps to the group identity element
+ * (RFC 9497 Section 3.3.1), or if a pointer argument is null. Don't forget to
+ * destroy the `UnblindedToken` once you are done with it!
+ */
+struct C_UnblindedToken *signing_key_rederive_unblinded_token_rfc(const struct C_SigningKey *key,
+                                                                  const struct C_TokenPreimage *t);
 
 /**
  * Take a reference to a `SigningKey` and return it's associated `PublicKey`
