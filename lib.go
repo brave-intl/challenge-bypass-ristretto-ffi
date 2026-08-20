@@ -67,6 +67,9 @@ func (t *TokenPreimage) MarshalText() ([]byte, error) {
 
 // UnmarshalText unmarshalls the token preimage from text.
 func (t *TokenPreimage) UnmarshalText(bytes []byte) error {
+	if len(bytes) == 0 {
+		return errors.New("Token preimage bytes must not be empty")
+	}
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
@@ -134,6 +137,9 @@ func (t *Token) MarshalText() ([]byte, error) {
 
 // UnmarshalText unmarshalls the token from text.
 func (t *Token) UnmarshalText(bytes []byte) error {
+	if len(bytes) == 0 {
+		return errors.New("Token bytes must not be empty")
+	}
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
@@ -173,6 +179,9 @@ func (t *BlindedToken) MarshalText() ([]byte, error) {
 
 // UnmarshalText unmarshalls the blinded token from text.
 func (t *BlindedToken) UnmarshalText(bytes []byte) error {
+	if len(bytes) == 0 {
+		return errors.New("Blinded token bytes must not be empty")
+	}
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
@@ -212,6 +221,9 @@ func (t *SignedToken) MarshalText() ([]byte, error) {
 
 // UnmarshalText unmarshalls the signed token from text.
 func (t *SignedToken) UnmarshalText(bytes []byte) error {
+	if len(bytes) == 0 {
+		return errors.New("Signed token bytes must not be empty")
+	}
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
@@ -298,6 +310,9 @@ func RandomSigningKey() (*SigningKey, error) {
 
 // SigningKeyFromRandomBytes creates a new `SigningKey` from 64 random bytes.
 func SigningKeyFromRandomBytes(bytes []byte) (*SigningKey, error) {
+	if len(bytes) == 0 {
+		return nil, errors.New("Random bytes must not be empty")
+	}
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
@@ -325,6 +340,9 @@ func (k *SigningKey) MarshalText() ([]byte, error) {
 
 // UnmarshalText unmarshalls the signing key from text.
 func (k *SigningKey) UnmarshalText(bytes []byte) error {
+	if len(bytes) == 0 {
+		return errors.New("Signing key bytes must not be empty")
+	}
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
@@ -421,6 +439,9 @@ func (t *UnblindedToken) MarshalText() ([]byte, error) {
 
 // UnmarshalText unmarshalls the unblinded token from text.
 func (t *UnblindedToken) UnmarshalText(bytes []byte) error {
+	if len(bytes) == 0 {
+		return errors.New("Unblinded token bytes must not be empty")
+	}
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
@@ -447,6 +468,9 @@ func verificationKeyFinalizer(k *VerificationKey) {
 
 // Sign a message, producing a VerificationSignature
 func (k *VerificationKey) Sign(message string) (*VerificationSignature, error) {
+	if len(message) == 0 {
+		return nil, errors.New("Message must not be empty")
+	}
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
@@ -462,6 +486,9 @@ func (k *VerificationKey) Sign(message string) (*VerificationSignature, error) {
 
 // Verify that the signature of a message matches the provided `VerificationSignature`
 func (k *VerificationKey) Verify(sig *VerificationSignature, message string) (bool, error) {
+	if len(message) == 0 {
+		return false, errors.New("Message must not be empty")
+	}
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
@@ -499,6 +526,9 @@ func (t *VerificationSignature) MarshalText() ([]byte, error) {
 
 // UnmarshalText unmarshalls the unblinded token from text.
 func (t *VerificationSignature) UnmarshalText(bytes []byte) error {
+	if len(bytes) == 0 {
+		return errors.New("Verification signature bytes must not be empty")
+	}
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
@@ -538,6 +568,9 @@ func (t *PublicKey) MarshalText() ([]byte, error) {
 
 // UnmarshalText unmarshalls the unblinded token from text.
 func (t *PublicKey) UnmarshalText(bytes []byte) error {
+	if len(bytes) == 0 {
+		return errors.New("Public key bytes must not be empty")
+	}
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
@@ -603,6 +636,9 @@ func (proof *DLEQProof) MarshalText() ([]byte, error) {
 
 // UnmarshalText unmarshalls the unblinded token from text.
 func (proof *DLEQProof) UnmarshalText(bytes []byte) error {
+	if len(bytes) == 0 {
+		return errors.New("DLEQ proof bytes must not be empty")
+	}
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
@@ -663,6 +699,9 @@ func NewBatchDLEQProof(blindedTokens []*BlindedToken, signedTokens []*SignedToke
 
 // Verify that the BatchDLEQProof shows each SignedToken is a BlindedToken signed by the same SigningKey as PublicKey
 func (proof *BatchDLEQProof) Verify(blindedTokens []*BlindedToken, signedTokens []*SignedToken, publicKey *PublicKey) (bool, error) {
+	if len(blindedTokens) == 0 {
+		return false, errors.New("Length of blinded tokens must be more than 0")
+	}
 	if len(blindedTokens) != len(signedTokens) {
 		return false, errors.New("Blinded tokens and signed tokens must have same length")
 	}
@@ -692,6 +731,9 @@ func (proof *BatchDLEQProof) Verify(blindedTokens []*BlindedToken, signedTokens 
 
 // VerifyAndUnblind each SignedToken if the BatchDLEQProof is valid
 func (proof *BatchDLEQProof) VerifyAndUnblind(tokens []*Token, blindedTokens []*BlindedToken, signedTokens []*SignedToken, publicKey *PublicKey) ([]*UnblindedToken, error) {
+	if len(tokens) == 0 {
+		return nil, errors.New("Length of tokens must be more than 0")
+	}
 	if len(tokens) != len(signedTokens) || len(blindedTokens) != len(signedTokens) {
 		return nil, errors.New("Blinded tokens and signed tokens must have same length")
 	}
@@ -750,6 +792,9 @@ func (proof *BatchDLEQProof) MarshalText() ([]byte, error) {
 
 // UnmarshalText unmarshalls the unblinded token from text.
 func (proof *BatchDLEQProof) UnmarshalText(bytes []byte) error {
+	if len(bytes) == 0 {
+		return errors.New("Batch DLEQ proof bytes must not be empty")
+	}
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
