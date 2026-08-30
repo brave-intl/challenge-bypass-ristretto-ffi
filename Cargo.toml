@@ -5,7 +5,7 @@ version = "2.1.0"
 edition = "2018"
 
 [dependencies]
-base64 = "0.22"
+base64 = "0.23"
 challenge-bypass-ristretto = { version = "2.1.0", features = ["base64"] }
 hmac = "0.12"
 rand = { version = "0.8", default-features = false, features = ["getrandom"] }
